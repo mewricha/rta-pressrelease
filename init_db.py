@@ -10,8 +10,20 @@ BASE     = Path(__file__).parent
 DB_PATH  = Path(os.environ.get("DB_PATH", str(BASE / "news.db")))
 SEED_SQL = BASE / "seed.sql"
 
-if DB_PATH.exists() and DB_PATH.stat().st_size > 1024:
-    print(f"[init_db] {DB_PATH} already exists ({DB_PATH.stat().st_size:,} bytes) — skip")
+def db_ready():
+    """ตรวจว่า press_releases มีข้อมูลจริง"""
+    try:
+        conn = sqlite3.connect(str(DB_PATH))
+        n = conn.execute("SELECT COUNT(*) FROM press_releases").fetchone()[0]
+        conn.close()
+        return n > 0
+    except Exception:
+        return False
+
+if db_ready():
+    import sqlite3 as _sq
+    _n = _sq.connect(str(DB_PATH)).execute("SELECT COUNT(*) FROM press_releases").fetchone()[0]
+    print(f"[init_db] DB OK — {_n} rows, skip rebuild")
 else:
     if not SEED_SQL.exists():
         print(f"[init_db] ERROR: {SEED_SQL} not found")
