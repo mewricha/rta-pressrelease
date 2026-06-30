@@ -17,21 +17,6 @@ DB_PATH  = Path(os.environ.get("DB_PATH", str(BASE / "news.db")))
 SEED_SQL = BASE / "seed.sql"
 
 
-def ensure_db():
-    """สร้าง news.db จาก seed.sql ถ้ายังไม่มีหรือว่างเปล่า"""
-    if DB_PATH.exists() and DB_PATH.stat().st_size > 1024:
-        return
-    if not SEED_SQL.exists():
-        return
-    print(f"[startup] building {DB_PATH} from {SEED_SQL} …")
-    conn = sqlite3.connect(str(DB_PATH))
-    conn.executescript(SEED_SQL.read_text(encoding="utf-8"))
-    conn.close()
-    print(f"[startup] done — {DB_PATH.stat().st_size:,} bytes")
-
-
-ensure_db()
-
 app = Flask(__name__)
 
 # ══════════════════════════════════════
