@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>คลังข่าวแจก ทีมโฆษกกองทัพบก</title>
+<title>คลังข่าวแจก กองทัพบก</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -143,7 +143,7 @@ body {
   display: flex; align-items: flex-start; gap: 7px;
   padding: 4px 8px; cursor: pointer;
   font-size: 0.8rem; line-height: 1.35;
-  transition: background 0.1s, opacity 0.15s;
+  transition: background 0.1s;
 }
 .ms-item:hover { background: var(--bg3); }
 .ms-item.checked { color: var(--green); }
@@ -167,10 +167,6 @@ body {
 .ms-clear-btn:hover { color: var(--red); }
 .ms-empty { padding: 8px; font-size: 0.78rem; color: var(--text2); text-align: center; }
 
-/* Unavailable option: dim items with no results in current filter set */
-.ms-item.unavailable { opacity: 0.28; }
-.ms-item.unavailable:not(.checked) { pointer-events: none; }
-
 /* ── List panel ── */
 .list-panel {
   width: 360px; flex-shrink: 0;
@@ -184,31 +180,6 @@ body {
   font-size: 0.88rem; font-family: inherit; outline: none;
 }
 .search-input:focus { border-color: var(--green); }
-
-/* Sort bar */
-.sort-bar {
-  padding: 5px 10px;
-  border-bottom: 1px solid var(--border);
-  background: var(--bg1);
-  display: flex; align-items: center; gap: 8px;
-  flex-shrink: 0;
-}
-.sort-label { font-size: 0.68rem; color: var(--text2); }
-.btn-sort {
-  margin-left: auto;
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  color: var(--text2);
-  font-size: 0.7rem;
-  padding: 3px 9px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-family: inherit;
-  transition: all 0.12s;
-}
-.btn-sort:hover { border-color: var(--green); color: var(--green); }
-.btn-sort.asc { border-color: var(--green); color: var(--green); }
-
 .results-bar { padding: 6px 12px; font-size: 0.72rem; color: var(--text2); border-bottom: 1px solid var(--border); background: var(--bg1); flex-shrink: 0; }
 .results-list { flex: 1; overflow-y: auto; }
 .empty-msg { padding: 32px 16px; text-align: center; color: var(--text2); font-size: 0.85rem; }
@@ -240,10 +211,11 @@ body {
 .d-title { font-size: 1.2rem; font-weight: 700; line-height: 1.45; margin-bottom: 10px; }
 .d-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
 .d-badge { font-size: 0.78rem; padding: 3px 10px; border-radius: 4px; border: 1px solid var(--border); }
-.info-grid { display: grid; grid-template-columns: 1fr; gap: 10px; background: var(--bg1); border: 1px solid var(--border); border-radius: 8px; padding: 14px; margin-bottom: 18px; }
+.info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; background: var(--bg1); border: 1px solid var(--border); border-radius: 8px; padding: 14px; margin-bottom: 18px; }
 .info-field label { font-size: 0.67rem; color: var(--text2); text-transform: uppercase; letter-spacing: 0.06em; display: block; margin-bottom: 3px; }
 .info-field span { font-size: 0.88rem; line-height: 1.4; word-break: break-all; }
 .info-field a { color: var(--blue); }
+.info-field.full { grid-column: span 2; }
 .section-label { font-size: 0.68rem; color: var(--text2); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; margin-top: 18px; }
 .d-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 14px; }
 .full-text { font-size: 0.9rem; line-height: 1.85; white-space: pre-wrap; background: var(--bg1); border: 1px solid var(--border); border-radius: 8px; padding: 16px; color: var(--text); }
@@ -267,7 +239,7 @@ body {
 <!-- Header -->
 <div class="header">
   <div>
-    <div class="header-title">📰 คลังข่าวแจก ทีมโฆษกกองทัพบก</div>
+    <div class="header-title">📰 คลังข่าวแจก กองทัพบก</div>
     <div class="header-sub">ระบบจัดเก็บและค้นหาข่าวแจก ทบ.</div>
   </div>
   <div class="header-stats" id="hdr-stats"></div>
@@ -281,7 +253,6 @@ body {
 
     <div id="ms-cat" class="ms-wrap"></div>
     <div id="ms-year" class="ms-wrap"></div>
-    <div id="ms-month" class="ms-wrap"></div>
     <div id="ms-status" class="ms-wrap"></div>
     <div id="ms-tag" class="ms-wrap"></div>
     <div id="ms-unit" class="ms-wrap"></div>
@@ -295,10 +266,6 @@ body {
   <div class="list-panel">
     <div class="search-wrap">
       <input class="search-input" id="search-input" type="text" placeholder="🔍 ค้นหาข่าว (ชื่อเรื่อง, เนื้อหา)…">
-    </div>
-    <div class="sort-bar">
-      <span class="sort-label">เรียงตามวันที่เผยแพร่</span>
-      <button class="btn-sort" id="btn-sort">ใหม่สุดก่อน ↓</button>
     </div>
     <div class="results-bar" id="results-bar">—</div>
     <div class="results-list" id="results-list"></div>
@@ -328,7 +295,6 @@ const MONTHS = ['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.',
 let DB = null;
 let activeRef = null;
 let debounce = null;
-let sortOrder = 'DESC'; // 'DESC' = ใหม่สุดก่อน, 'ASC' = เก่าสุดก่อน
 const msFilters = {};  // id -> MultiSelect instance
 
 // ── Helpers ──────────────────────────────────────────
@@ -370,7 +336,6 @@ class MultiSelect {
     this.searchable = searchable;
     this.allOptions = options; // [{value, text}]
     this.selected = new Set();
-    this._availableSet = null; // Set<string> of available values; null = all available
     this._build();
   }
 
@@ -436,26 +401,6 @@ class MultiSelect {
         loadList();
       });
     });
-
-    // Apply availability dimming after render
-    this._applyAvailability();
-  }
-
-  // Mark options not in availableSet as dimmed/disabled
-  _applyAvailability() {
-    if (!this._availableSet) return;
-    this._listEl.querySelectorAll('.ms-item').forEach(item => {
-      const cb = item.querySelector('input[type=checkbox]');
-      if (!cb) return;
-      const avail = this._availableSet.has(String(cb.value));
-      item.classList.toggle('unavailable', !avail);
-    });
-  }
-
-  // Called by refreshFilterOptions() after each filter change
-  updateAvailability(availableSet) {
-    this._availableSet = availableSet;
-    this._applyAvailability();
   }
 
   _updateVal() {
@@ -473,9 +418,11 @@ class MultiSelect {
   }
 
   open() {
+    // Close others
     Object.values(msFilters).forEach(ms => { if (ms !== this) ms.close(); });
     this._panel.hidden = false;
     this._trigger.classList.add('open');
+    // Re-render to sync checkmarks
     const searchEl = document.querySelector(`#${this.id} .ms-search`);
     const qStr = searchEl ? searchEl.value.toLowerCase() : '';
     const filtered = qStr ? this.allOptions.filter(o => o.text.toLowerCase().includes(qStr)) : this.allOptions;
@@ -557,10 +504,6 @@ function initUI() {
   const yearOpts = q("SELECT DISTINCT strftime('%Y', publish_date) yr FROM press_releases WHERE publish_date IS NOT NULL ORDER BY yr DESC")
     .map(r => ({ value: r.yr, text: `พ.ศ. ${parseInt(r.yr)+543}` }));
 
-  // Month: only months that have at least one record
-  const monthOpts = q("SELECT DISTINCT strftime('%m', publish_date) m FROM press_releases WHERE publish_date IS NOT NULL ORDER BY m")
-    .map(r => ({ value: r.m, text: MONTHS[parseInt(r.m)] }));
-
   const statusOpts = [
     { value: 'ปกติ',    text: '✓ ปกติ' },
     { value: 'ต้องตรวจ', text: '⚑ ต้องตรวจ' },
@@ -581,7 +524,6 @@ function initUI() {
   // Create MultiSelect instances
   msFilters.cat    = new MultiSelect('ms-cat',      { label: 'หมวดหมู่',          options: catOpts,    searchable: catOpts.length > 6 });
   msFilters.year   = new MultiSelect('ms-year',     { label: 'ปี (พ.ศ.)',          options: yearOpts });
-  msFilters.month  = new MultiSelect('ms-month',    { label: 'เดือน',             options: monthOpts });
   msFilters.status = new MultiSelect('ms-status',   { label: 'สถานะตรวจสอบ',      options: statusOpts });
   msFilters.tag    = new MultiSelect('ms-tag',      { label: 'แท็ก',               options: tagOpts,    searchable: tagOpts.length > 8 });
   msFilters.unit   = new MultiSelect('ms-unit',     { label: 'หน่วยที่เกี่ยวข้อง', options: unitOpts,   searchable: true });
@@ -592,20 +534,6 @@ function initUI() {
   document.getElementById('search-input').addEventListener('input', () => {
     clearTimeout(debounce);
     debounce = setTimeout(loadList, 280);
-  });
-
-  // Sort toggle
-  document.getElementById('btn-sort').addEventListener('click', () => {
-    sortOrder = sortOrder === 'DESC' ? 'ASC' : 'DESC';
-    const btn = document.getElementById('btn-sort');
-    if (sortOrder === 'ASC') {
-      btn.textContent = 'เก่าสุดก่อน ↑';
-      btn.classList.add('asc');
-    } else {
-      btn.textContent = 'ใหม่สุดก่อน ↓';
-      btn.classList.remove('asc');
-    }
-    loadList();
   });
 
   // Reset all
@@ -620,9 +548,6 @@ function initUI() {
 function resetAll() {
   Object.values(msFilters).forEach(ms => ms.clear());
   document.getElementById('search-input').value = '';
-  sortOrder = 'DESC';
-  const btn = document.getElementById('btn-sort');
-  if (btn) { btn.textContent = 'ใหม่สุดก่อน ↓'; btn.classList.remove('asc'); }
   loadList();
 }
 
@@ -633,117 +558,65 @@ function buildIn(vals) {
   return { ph: vals.map(() => '?').join(','), params: vals };
 }
 
-// ── Build WHERE conditions from all active filters ────
-// excludeFilter: filter id (string) to skip — used by refreshFilterOptions
-// Returns { wheres: string[], params: any[] }
-
-function buildConditions(excludeFilter = null) {
-  const wheres = [];
-  const params = [];
-
-  const FILTER_DEFS = {
-    cat: vals => {
-      const ci = buildIn(vals);
-      if (ci) { wheres.push(`pr.category_id IN (${ci.ph})`); params.push(...ci.params); }
-    },
-    year: vals => {
-      const yi = buildIn(vals);
-      if (yi) { wheres.push(`strftime('%Y', pr.publish_date) IN (${yi.ph})`); params.push(...yi.params); }
-    },
-    month: vals => {
-      const mi = buildIn(vals);
-      if (mi) { wheres.push(`strftime('%m', pr.publish_date) IN (${mi.ph})`); params.push(...mi.params); }
-    },
-    status: vals => {
-      const si = buildIn(vals);
-      if (si) { wheres.push(`pr.review_status IN (${si.ph})`); params.push(...si.params); }
-    },
-    tag: vals => {
-      const ti = buildIn(vals);
-      if (ti) {
-        wheres.push(`pr.ref_code IN (SELECT prt.press_release_ref FROM press_release_tags prt JOIN tags t ON prt.tag_id=t.id WHERE t.name IN (${ti.ph}))`);
-        params.push(...ti.params);
-      }
-    },
-    unit: vals => {
-      const ui = buildIn(vals);
-      if (ui) {
-        wheres.push(`pr.ref_code IN (SELECT press_release_ref FROM press_release_units WHERE unit_name IN (${ui.ph}))`);
-        params.push(...ui.params);
-      }
-    },
-    prov: vals => {
-      const pi = buildIn(vals);
-      if (pi) {
-        wheres.push(`pr.ref_code IN (SELECT press_release_ref FROM press_release_provinces WHERE province_name IN (${pi.ph}))`);
-        params.push(...pi.params);
-      }
-    },
-    person: vals => {
-      const peri = buildIn(vals);
-      if (peri) {
-        wheres.push(`pr.ref_code IN (SELECT press_release_ref FROM press_release_persons WHERE person_name IN (${peri.ph}))`);
-        params.push(...peri.params);
-      }
-    },
-  };
-
-  for (const [id, fn] of Object.entries(FILTER_DEFS)) {
-    if (id === excludeFilter) continue;
-    fn(msFilters[id]?.getSelected() || []);
-  }
-
-  return { wheres, params };
-}
-
-// ── Refresh filter options (cascading / dynamic availability) ─────────────
-
-function refreshFilterOptions() {
-  // Base FROM clause shared by simple filters
-  const BASE = `FROM press_releases pr LEFT JOIN categories c ON pr.category_id = c.id`;
-
-  // Helper: get available values for a simple column expression
-  function getAvailSimple(excludeFilter, valueExpr) {
-    const { wheres, params } = buildConditions(excludeFilter);
-    const where = wheres.length ? 'WHERE ' + wheres.join(' AND ') : '';
-    const rows = q(`SELECT DISTINCT ${valueExpr} v ${BASE} ${where}`, params);
-    return new Set(rows.map(r => String(r.v)).filter(v => v !== 'null'));
-  }
-
-  msFilters.cat?.updateAvailability(getAvailSimple('cat', 'pr.category_id'));
-  msFilters.year?.updateAvailability(getAvailSimple('year', "strftime('%Y', pr.publish_date)"));
-  msFilters.month?.updateAvailability(getAvailSimple('month', "strftime('%m', pr.publish_date)"));
-  msFilters.status?.updateAvailability(getAvailSimple('status', 'pr.review_status'));
-
-  // Many-to-many filters need their own JOIN
-  function getAvailJoined(excludeFilter, joinSql, valCol) {
-    const { wheres, params } = buildConditions(excludeFilter);
-    const where = wheres.length ? 'WHERE ' + wheres.join(' AND ') : '';
-    const rows = q(`SELECT DISTINCT ${valCol} v ${joinSql} ${where}`, params);
-    return new Set(rows.map(r => String(r.v)).filter(v => v !== 'null'));
-  }
-
-  const TAG_JOIN   = `FROM tags t JOIN press_release_tags prt ON t.id=prt.tag_id JOIN press_releases pr ON prt.press_release_ref=pr.ref_code LEFT JOIN categories c ON pr.category_id=c.id`;
-  const UNIT_JOIN  = `FROM press_release_units pru JOIN press_releases pr ON pru.press_release_ref=pr.ref_code LEFT JOIN categories c ON pr.category_id=c.id`;
-  const PROV_JOIN  = `FROM press_release_provinces prp JOIN press_releases pr ON prp.press_release_ref=pr.ref_code LEFT JOIN categories c ON pr.category_id=c.id`;
-  const PERS_JOIN  = `FROM press_release_persons prpe JOIN press_releases pr ON prpe.press_release_ref=pr.ref_code LEFT JOIN categories c ON pr.category_id=c.id`;
-
-  msFilters.tag?.updateAvailability(getAvailJoined('tag', TAG_JOIN, 't.name'));
-  msFilters.unit?.updateAvailability(getAvailJoined('unit', UNIT_JOIN, 'pru.unit_name'));
-  msFilters.prov?.updateAvailability(getAvailJoined('prov', PROV_JOIN, 'prp.province_name'));
-  msFilters.person?.updateAvailability(getAvailJoined('person', PERS_JOIN, 'prpe.person_name'));
-}
-
 // ── Load list ─────────────────────────────────────────
 
 function loadList() {
-  const sq = document.getElementById('search-input').value.trim();
-  const { wheres, params } = buildConditions();
+  const sq      = document.getElementById('search-input').value.trim();
+  const cats    = msFilters.cat?.getSelected()    || [];
+  const years   = msFilters.year?.getSelected()   || [];
+  const statuses = msFilters.status?.getSelected() || [];
+  const tags    = msFilters.tag?.getSelected()    || [];
+  const units   = msFilters.unit?.getSelected()   || [];
+  const provs   = msFilters.prov?.getSelected()   || [];
+  const persons = msFilters.person?.getSelected() || [];
+
+  const wheres = [];
+  const params = [];
+
+  // ── Category
+  const catIn = buildIn(cats);
+  if (catIn) { wheres.push(`pr.category_id IN (${catIn.ph})`); params.push(...catIn.params); }
+
+  // ── Year
+  const yearIn = buildIn(years);
+  if (yearIn) { wheres.push(`strftime('%Y', pr.publish_date) IN (${yearIn.ph})`); params.push(...yearIn.params); }
+
+  // ── Status
+  const statusIn = buildIn(statuses);
+  if (statusIn) { wheres.push(`pr.review_status IN (${statusIn.ph})`); params.push(...statusIn.params); }
+
+  // ── Tags
+  const tagIn = buildIn(tags);
+  if (tagIn) {
+    wheres.push(`pr.ref_code IN (SELECT prt.press_release_ref FROM press_release_tags prt JOIN tags t ON prt.tag_id=t.id WHERE t.name IN (${tagIn.ph}))`);
+    params.push(...tagIn.params);
+  }
+
+  // ── Units
+  const unitIn = buildIn(units);
+  if (unitIn) {
+    wheres.push(`pr.ref_code IN (SELECT press_release_ref FROM press_release_units WHERE unit_name IN (${unitIn.ph}))`);
+    params.push(...unitIn.params);
+  }
+
+  // ── Provinces
+  const provIn = buildIn(provs);
+  if (provIn) {
+    wheres.push(`pr.ref_code IN (SELECT press_release_ref FROM press_release_provinces WHERE province_name IN (${provIn.ph}))`);
+    params.push(...provIn.params);
+  }
+
+  // ── Persons
+  const personIn = buildIn(persons);
+  if (personIn) {
+    wheres.push(`pr.ref_code IN (SELECT press_release_ref FROM press_release_persons WHERE person_name IN (${personIn.ph}))`);
+    params.push(...personIn.params);
+  }
 
   let rows;
 
   if (sq) {
-    // FTS search (sort by relevance rank)
+    // FTS search
     const ftsQ = '"' + sq.replace(/"/g,'""').replace(/\s+/g, '" OR "') + '"';
     let sql = `
       SELECT pr.ref_code, pr.publish_date, pr.title, pr.review_status, pr.priority, c.name cat
@@ -756,7 +629,7 @@ function loadList() {
     sql += ' ORDER BY rank LIMIT 150';
     rows = q(sql, p);
 
-    // Fallback: LIKE search (respects sortOrder)
+    // Fallback: LIKE
     if (!rows.length) {
       const pat = '%' + sq + '%';
       let s2 = `
@@ -766,7 +639,7 @@ function loadList() {
         WHERE (pr.title LIKE ? OR pr.summary LIKE ?)`;
       const p2 = [pat, pat, ...params];
       if (wheres.length) s2 += ' AND ' + wheres.join(' AND ');
-      s2 += ` ORDER BY pr.publish_date ${sortOrder} LIMIT 150`;
+      s2 += ' ORDER BY pr.publish_date DESC LIMIT 150';
       rows = q(s2, p2);
     }
   } else {
@@ -776,11 +649,10 @@ function loadList() {
       FROM press_releases pr
       LEFT JOIN categories c ON pr.category_id = c.id
       ${where}
-      ORDER BY pr.publish_date ${sortOrder} LIMIT 200`, params);
+      ORDER BY pr.publish_date DESC LIMIT 200`, params);
   }
 
   renderList(rows);
-  refreshFilterOptions(); // Update availability after every filter change
 }
 
 // ── Render list ───────────────────────────────────────
@@ -837,16 +709,16 @@ function showDetail(refCode) {
     ? `<span class="d-badge" style="border-color:#7c2020;color:var(--red);background:#160808">⚑ ${esc(pr.review_status)}</span>`
     : `<span class="d-badge" style="border-color:#1a5c2e;color:var(--green);background:#071510">✓ ปกติ</span>`;
 
-  // info-grid: วันที่เหตุการณ์ ถูกตัดออก — แสดงแค่วันที่เผยแพร่
   let infoFields = `
-    <div class="info-field"><label>วันที่เผยแพร่</label><span>${fmtDate(pr.publish_date)}</span></div>`;
-  if (pr.event_action)  infoFields += `<div class="info-field"><label>การดำเนินการ</label><span>${esc(pr.event_action)}</span></div>`;
-  if (units.length)     infoFields += `<div class="info-field"><label>หน่วยที่เกี่ยวข้อง</label><span>${units.map(u=>esc(u.u)).join(', ')}</span></div>`;
-  if (persons.length)   infoFields += `<div class="info-field"><label>บุคคลที่เกี่ยวข้อง</label><span>${persons.map(p=>esc(p.p)).join(', ')}</span></div>`;
-  if (provinces.length) infoFields += `<div class="info-field"><label>จังหวัด</label><span>${provinces.map(pv=>esc(pv.pv)).join(', ')}</span></div>`;
-  if (pr.file_name)     infoFields += `<div class="info-field"><label>ชื่อไฟล์ต้นฉบับ</label><span style="color:var(--text2);font-size:.8rem">${esc(String(pr.file_name).split(/[\\/]/).pop())}</span></div>`;
-  if (pr.fb_link)       infoFields += `<div class="info-field"><label>ลิงก์ Facebook</label><span><a href="${esc(pr.fb_link)}" target="_blank" rel="noopener">${esc(pr.fb_link)}</a></span></div>`;
-  if (pr.notes)         infoFields += `<div class="info-field"><label>หมายเหตุ</label><span style="color:var(--yellow)">${esc(pr.notes)}</span></div>`;
+    <div class="info-field"><label>วันที่เผยแพร่</label><span>${fmtDate(pr.publish_date)}</span></div>
+    <div class="info-field"><label>วันที่เหตุการณ์</label><span>${pr.event_date ? esc(pr.event_date) : '—'}</span></div>`;
+  if (pr.event_action) infoFields += `<div class="info-field full"><label>การดำเนินการ</label><span>${esc(pr.event_action)}</span></div>`;
+  if (units.length)    infoFields += `<div class="info-field full"><label>หน่วยที่เกี่ยวข้อง</label><span>${units.map(u=>esc(u.u)).join(', ')}</span></div>`;
+  if (persons.length)  infoFields += `<div class="info-field full"><label>บุคคลที่เกี่ยวข้อง</label><span>${persons.map(p=>esc(p.p)).join(', ')}</span></div>`;
+  if (provinces.length) infoFields += `<div class="info-field full"><label>จังหวัด</label><span>${provinces.map(pv=>esc(pv.pv)).join(', ')}</span></div>`;
+  if (pr.file_name)    infoFields += `<div class="info-field full"><label>ชื่อไฟล์ต้นฉบับ</label><span style="color:var(--text2);font-size:.8rem">${esc(pr.file_name)}</span></div>`;
+  if (pr.fb_link)      infoFields += `<div class="info-field full"><label>ลิงก์ Facebook</label><span><a href="${esc(pr.fb_link)}" target="_blank" rel="noopener">${esc(pr.fb_link)}</a></span></div>`;
+  if (pr.notes)        infoFields += `<div class="info-field full"><label>หมายเหตุ</label><span style="color:var(--yellow)">${esc(pr.notes)}</span></div>`;
 
   const catBadge  = pr.cat ? `<span class="d-badge" style="border-color:#2d3d80;color:#93c5fd;background:#0f1833">${esc(pr.cat)}</span>` : '';
   const prioBadge = pr.priority ? `<span class="d-badge" style="border-color:var(--border);color:var(--text2)">${esc(pr.priority)}</span>` : '';
