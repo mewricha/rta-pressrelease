@@ -31,20 +31,15 @@ body {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  font-size: 16px;
 }
 
 /* ── Loading ── */
 #overlay {
-  position: fixed;
-  inset: 0;
+  position: fixed; inset: 0;
   background: var(--bg0);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  z-index: 999;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 14px; z-index: 999;
 }
 .spinner {
   width: 42px; height: 42px;
@@ -55,300 +50,178 @@ body {
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 #load-msg { color: var(--text2); font-size: 0.9rem; }
-#load-bar-wrap {
-  width: 220px; height: 4px;
-  background: var(--bg2); border-radius: 2px; overflow: hidden;
-}
-#load-bar {
-  height: 100%; width: 0;
-  background: var(--green);
-  transition: width 0.3s;
-}
+#load-bar-wrap { width: 220px; height: 4px; background: var(--bg2); border-radius: 2px; overflow: hidden; }
+#load-bar { height: 100%; width: 0; background: var(--green); transition: width 0.3s; }
 
 /* ── Header ── */
 .header {
   background: var(--bg1);
   border-bottom: 1px solid var(--border);
   padding: 10px 18px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
+  display: flex; align-items: center; gap: 14px;
   flex-shrink: 0;
 }
-.header-title {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--green);
-}
-.header-sub {
-  font-size: 0.72rem;
-  color: var(--text2);
-}
-.header-stats {
-  margin-left: auto;
-  display: flex;
-  gap: 18px;
-}
-.stat-num {
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: var(--green);
-  display: block;
-  text-align: center;
-}
-.stat-label {
-  font-size: 0.65rem;
-  color: var(--text2);
-  display: block;
-  text-align: center;
-}
+.header-title { font-size: 1rem; font-weight: 700; color: var(--green); }
+.header-sub { font-size: 0.72rem; color: var(--text2); }
+.header-stats { margin-left: auto; display: flex; gap: 18px; }
+.stat-num { font-size: 1.05rem; font-weight: 700; color: var(--green); display: block; text-align: center; }
+.stat-label { font-size: 0.65rem; color: var(--text2); display: block; text-align: center; }
 .stat-warn .stat-num { color: var(--yellow); }
 
 /* ── Layout ── */
-.layout {
-  display: flex;
-  flex: 1;
-  overflow: hidden;
-}
+.layout { display: flex; flex: 1; overflow: hidden; }
 
 /* ── Sidebar ── */
 .sidebar {
-  width: 210px;
-  flex-shrink: 0;
+  width: 230px; flex-shrink: 0;
   background: var(--bg1);
   border-right: 1px solid var(--border);
   overflow-y: auto;
-  padding: 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
+  padding: 10px 10px 16px;
+  display: flex; flex-direction: column; gap: 4px;
 }
-.filter-group label {
-  display: block;
-  font-size: 0.68rem;
-  color: var(--text2);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin-bottom: 5px;
+.sidebar-section-label {
+  font-size: 0.63rem; color: var(--text2);
+  text-transform: uppercase; letter-spacing: 0.1em;
+  padding: 8px 4px 3px;
 }
-.filter-group select {
+.btn-reset-all {
+  margin-top: 8px;
+  background: none; border: 1px solid var(--border);
+  color: var(--text2); font-size: 0.75rem;
+  padding: 5px 8px; border-radius: 5px;
+  cursor: pointer; font-family: inherit; width: 100%;
+  transition: all 0.12s;
+}
+.btn-reset-all:hover { border-color: var(--red); color: var(--red); }
+
+/* ── MultiSelect ── */
+.ms-wrap { position: relative; }
+
+.ms-trigger {
   width: 100%;
   background: var(--bg2);
   border: 1px solid var(--border);
   color: var(--text);
-  padding: 5px 7px;
-  border-radius: 5px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
   font-size: 0.82rem;
-  font-family: inherit;
-  cursor: pointer;
-  outline: none;
-}
-.filter-group select:focus { border-color: var(--green); }
-
-.tag-list {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  max-height: 220px;
-  overflow-y: auto;
-}
-.tag-btn {
-  background: none;
-  border: none;
-  color: var(--text2);
-  font-size: 0.78rem;
+  display: flex; align-items: center; gap: 6px;
   text-align: left;
-  padding: 3px 6px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-family: inherit;
-  transition: all 0.12s;
-  word-break: break-word;
-  line-height: 1.35;
+  transition: border-color 0.12s;
+  min-height: 32px;
 }
-.tag-btn:hover { background: var(--bg2); color: var(--text); }
-.tag-btn.active { background: var(--bg2); color: var(--green); }
+.ms-trigger:hover { border-color: #4a5568; }
+.ms-trigger.open, .ms-trigger.has-value { border-color: var(--green); }
+.ms-trigger-label { color: var(--text2); font-size: 0.72rem; min-width: 0; flex-shrink: 0; }
+.ms-trigger-val { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); }
+.ms-trigger.has-value .ms-trigger-val { color: var(--green); font-weight: 500; }
+.ms-caret { margin-left: auto; flex-shrink: 0; color: var(--text2); font-size: 0.65rem; transition: transform 0.15s; }
+.ms-trigger.open .ms-caret { transform: rotate(180deg); }
 
-.btn-clear-filter {
-  background: none;
-  border: 1px solid var(--border);
-  color: var(--text2);
-  font-size: 0.75rem;
-  padding: 4px 8px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-family: inherit;
-  width: 100%;
-  margin-top: 2px;
+.ms-panel {
+  background: var(--bg2);
+  border: 1px solid var(--green);
+  border-top: none;
+  border-radius: 0 0 6px 6px;
+  overflow: hidden;
 }
-.btn-clear-filter:hover { border-color: var(--red); color: var(--red); }
+.ms-panel[hidden] { display: none; }
+.ms-search-wrap { padding: 6px; border-bottom: 1px solid var(--border); }
+.ms-search {
+  width: 100%; background: var(--bg0);
+  border: 1px solid var(--border);
+  color: var(--text); padding: 4px 7px;
+  border-radius: 4px; font-size: 0.78rem;
+  font-family: inherit; outline: none;
+}
+.ms-search:focus { border-color: var(--green); }
+.ms-list { max-height: 180px; overflow-y: auto; padding: 3px 0; }
+.ms-item {
+  display: flex; align-items: flex-start; gap: 7px;
+  padding: 4px 8px; cursor: pointer;
+  font-size: 0.8rem; line-height: 1.35;
+  transition: background 0.1s;
+}
+.ms-item:hover { background: var(--bg3); }
+.ms-item.checked { color: var(--green); }
+.ms-item input[type=checkbox] {
+  accent-color: var(--green);
+  flex-shrink: 0; margin-top: 2px;
+  cursor: pointer;
+}
+.ms-item-label { flex: 1; word-break: break-word; }
+.ms-footer {
+  display: flex; justify-content: flex-end;
+  padding: 4px 6px;
+  border-top: 1px solid var(--border);
+}
+.ms-clear-btn {
+  background: none; border: none;
+  color: var(--text2); font-size: 0.72rem;
+  cursor: pointer; font-family: inherit;
+  padding: 2px 6px; border-radius: 3px;
+}
+.ms-clear-btn:hover { color: var(--red); }
+.ms-empty { padding: 8px; font-size: 0.78rem; color: var(--text2); text-align: center; }
 
 /* ── List panel ── */
 .list-panel {
-  width: 360px;
-  flex-shrink: 0;
+  width: 360px; flex-shrink: 0;
   border-right: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+  display: flex; flex-direction: column; overflow: hidden;
 }
-.search-wrap {
-  padding: 10px;
-  border-bottom: 1px solid var(--border);
-  background: var(--bg1);
-  flex-shrink: 0;
-}
+.search-wrap { padding: 10px; border-bottom: 1px solid var(--border); background: var(--bg1); flex-shrink: 0; }
 .search-input {
-  width: 100%;
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  color: var(--text);
-  padding: 7px 11px;
-  border-radius: 7px;
-  font-size: 0.88rem;
-  font-family: inherit;
-  outline: none;
+  width: 100%; background: var(--bg2); border: 1px solid var(--border);
+  color: var(--text); padding: 7px 11px; border-radius: 7px;
+  font-size: 0.88rem; font-family: inherit; outline: none;
 }
 .search-input:focus { border-color: var(--green); }
-.results-bar {
-  padding: 6px 12px;
-  font-size: 0.72rem;
-  color: var(--text2);
-  border-bottom: 1px solid var(--border);
-  background: var(--bg1);
-  flex-shrink: 0;
-}
-.results-list {
-  flex: 1;
-  overflow-y: auto;
-}
-.empty-msg {
-  padding: 32px 16px;
-  text-align: center;
-  color: var(--text2);
-  font-size: 0.85rem;
-}
+.results-bar { padding: 6px 12px; font-size: 0.72rem; color: var(--text2); border-bottom: 1px solid var(--border); background: var(--bg1); flex-shrink: 0; }
+.results-list { flex: 1; overflow-y: auto; }
+.empty-msg { padding: 32px 16px; text-align: center; color: var(--text2); font-size: 0.85rem; }
 
 /* ── News card ── */
 .news-card {
-  padding: 12px 14px;
-  border-bottom: 1px solid var(--border);
-  cursor: pointer;
-  transition: background 0.12s;
+  padding: 12px 14px; border-bottom: 1px solid var(--border);
+  cursor: pointer; transition: background 0.12s;
   border-left: 3px solid transparent;
 }
 .news-card:hover { background: var(--bg2); }
 .news-card.active { background: var(--bg2); border-left-color: var(--green); }
 .card-date { font-size: 0.68rem; color: var(--text2); margin-bottom: 4px; }
-.card-title {
-  font-size: 0.85rem;
-  font-weight: 500;
-  line-height: 1.45;
-  margin-bottom: 6px;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
+.card-title { font-size: 0.85rem; font-weight: 500; line-height: 1.45; margin-bottom: 6px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .card-badges { display: flex; flex-wrap: wrap; gap: 4px; }
 
 /* ── Badges ── */
-.badge {
-  font-size: 0.63rem;
-  padding: 2px 6px;
-  border-radius: 3px;
-  border: 1px solid var(--border);
-  color: var(--text2);
-  background: var(--bg2);
-  white-space: nowrap;
-}
+.badge { font-size: 0.63rem; padding: 2px 6px; border-radius: 3px; border: 1px solid var(--border); color: var(--text2); background: var(--bg2); white-space: nowrap; }
 .badge.cat { border-color: #2d3d80; color: #93c5fd; background: #0f1833; }
 .badge.ok  { border-color: #1a5c2e; color: var(--green); background: #071510; }
 .badge.flag { border-color: #7c2020; color: var(--red); background: #160808; }
 .badge.tag { border-color: #1a5c2e; color: var(--green); background: #071510; }
 
 /* ── Detail panel ── */
-.detail-panel {
-  flex: 1;
-  overflow-y: auto;
-  padding: 22px 26px;
-  background: var(--bg0);
-}
-.detail-empty {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  color: var(--text2);
-  gap: 10px;
-  opacity: 0.45;
-}
+.detail-panel { flex: 1; overflow-y: auto; padding: 22px 26px; background: var(--bg0); }
+.detail-empty { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text2); gap: 10px; opacity: 0.45; }
 .detail-empty svg { width: 52px; height: 52px; }
-
 .d-ref { font-size: 0.72rem; color: var(--text2); margin-bottom: 6px; }
-.d-title {
-  font-size: 1.2rem;
-  font-weight: 700;
-  line-height: 1.45;
-  margin-bottom: 10px;
-}
+.d-title { font-size: 1.2rem; font-weight: 700; line-height: 1.45; margin-bottom: 10px; }
 .d-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
-.d-badge {
-  font-size: 0.78rem;
-  padding: 3px 10px;
-  border-radius: 4px;
-  border: 1px solid var(--border);
-}
-
-.info-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  background: var(--bg1);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 14px;
-  margin-bottom: 18px;
-}
-.info-field label {
-  font-size: 0.67rem;
-  color: var(--text2);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  display: block;
-  margin-bottom: 3px;
-}
-.info-field span {
-  font-size: 0.88rem;
-  line-height: 1.4;
-  word-break: break-all;
-}
+.d-badge { font-size: 0.78rem; padding: 3px 10px; border-radius: 4px; border: 1px solid var(--border); }
+.info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; background: var(--bg1); border: 1px solid var(--border); border-radius: 8px; padding: 14px; margin-bottom: 18px; }
+.info-field label { font-size: 0.67rem; color: var(--text2); text-transform: uppercase; letter-spacing: 0.06em; display: block; margin-bottom: 3px; }
+.info-field span { font-size: 0.88rem; line-height: 1.4; word-break: break-all; }
 .info-field a { color: var(--blue); }
 .info-field.full { grid-column: span 2; }
-
-.section-label {
-  font-size: 0.68rem;
-  color: var(--text2);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin-bottom: 8px;
-  margin-top: 18px;
-}
+.section-label { font-size: 0.68rem; color: var(--text2); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; margin-top: 18px; }
 .d-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 14px; }
-.full-text {
-  font-size: 0.9rem;
-  line-height: 1.85;
-  white-space: pre-wrap;
-  background: var(--bg1);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 16px;
-  color: var(--text);
-}
+.full-text { font-size: 0.9rem; line-height: 1.85; white-space: pre-wrap; background: var(--bg1); border: 1px solid var(--border); border-radius: 8px; padding: 16px; color: var(--text); }
 
 /* ── Scrollbar ── */
-::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--bg3); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: #3a4060; }
@@ -356,7 +229,7 @@ body {
 </head>
 <body>
 
-<!-- Loading overlay -->
+<!-- Loading -->
 <div id="overlay">
   <div class="spinner"></div>
   <div id="load-msg">กำลังเตรียมระบบ...</div>
@@ -372,32 +245,21 @@ body {
   <div class="header-stats" id="hdr-stats"></div>
 </div>
 
-<!-- Main layout -->
 <div class="layout">
 
-  <!-- Sidebar: filters -->
-  <div class="sidebar">
-    <div class="filter-group">
-      <label>หมวดหมู่</label>
-      <select id="f-cat"><option value="">ทั้งหมด</option></select>
-    </div>
-    <div class="filter-group">
-      <label>ปี (พ.ศ.)</label>
-      <select id="f-year"><option value="">ทั้งหมด</option></select>
-    </div>
-    <div class="filter-group">
-      <label>สถานะตรวจสอบ</label>
-      <select id="f-status">
-        <option value="">ทั้งหมด</option>
-        <option value="ปกติ">ปกติ</option>
-        <option value="ต้องตรวจ">ต้องตรวจ</option>
-      </select>
-    </div>
-    <div class="filter-group">
-      <label>แท็ก</label>
-      <div class="tag-list" id="tag-list"></div>
-    </div>
-    <button class="btn-clear-filter" id="btn-reset">✕ ล้างตัวกรองทั้งหมด</button>
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-section-label">ตัวกรอง</div>
+
+    <div id="ms-cat" class="ms-wrap"></div>
+    <div id="ms-year" class="ms-wrap"></div>
+    <div id="ms-status" class="ms-wrap"></div>
+    <div id="ms-tag" class="ms-wrap"></div>
+    <div id="ms-unit" class="ms-wrap"></div>
+    <div id="ms-province" class="ms-wrap"></div>
+    <div id="ms-person" class="ms-wrap"></div>
+
+    <button class="btn-reset-all" id="btn-reset">✕ ล้างตัวกรองทั้งหมด</button>
   </div>
 
   <!-- List panel -->
@@ -421,7 +283,6 @@ body {
       <div>เลือกข่าวจากรายการด้านซ้ายเพื่ออ่านรายละเอียด</div>
     </div>
   </div>
-
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/sql-wasm.js"></script>
@@ -433,8 +294,8 @@ const MONTHS = ['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.',
 
 let DB = null;
 let activeRef = null;
-let activeTag = null;
 let debounce = null;
+const msFilters = {};  // id -> MultiSelect instance
 
 // ── Helpers ──────────────────────────────────────────
 
@@ -445,16 +306,10 @@ function fmtDate(s) {
     return `${parseInt(p[2])} ${MONTHS[parseInt(p[1])]} ${parseInt(p[0])+543}`;
   } catch(e) { return s; }
 }
-
 function esc(s) {
-  if (!s) return '';
-  return String(s)
-    .replace(/&/g,'&amp;')
-    .replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;')
-    .replace(/"/g,'&quot;');
+  if (s == null) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
-
 function q(sql, params=[]) {
   try {
     const stmt = DB.prepare(sql);
@@ -463,20 +318,131 @@ function q(sql, params=[]) {
     while (stmt.step()) rows.push(stmt.getAsObject());
     stmt.free();
     return rows;
-  } catch(e) {
-    console.error('SQL error:', e.message, '\n', sql);
-    return [];
-  }
+  } catch(e) { console.error('SQL:', e.message, sql); return []; }
 }
-
-function q1(sql, params=[]) {
-  const r = q(sql, params);
-  return r.length ? r[0] : null;
-}
-
+function q1(sql, params=[]) { const r = q(sql,params); return r[0]||null; }
 function setLoad(msg, pct) {
   document.getElementById('load-msg').textContent = msg;
-  if (pct !== undefined) document.getElementById('load-bar').style.width = pct + '%';
+  if (pct != null) document.getElementById('load-bar').style.width = pct+'%';
+}
+
+// ── MultiSelect class ─────────────────────────────────
+
+class MultiSelect {
+  constructor(containerId, { label, options, searchable = false, placeholder = 'ทั้งหมด' }) {
+    this.id = containerId;
+    this.label = label;
+    this.placeholder = placeholder;
+    this.searchable = searchable;
+    this.allOptions = options; // [{value, text}]
+    this.selected = new Set();
+    this._build();
+  }
+
+  _build() {
+    const wrap = document.getElementById(this.id);
+    wrap.innerHTML = `
+      <button class="ms-trigger" type="button">
+        <span class="ms-trigger-label">${this.label}</span>
+        <span class="ms-trigger-val">${this.placeholder}</span>
+        <span class="ms-caret">▾</span>
+      </button>
+      <div class="ms-panel" hidden>
+        ${this.searchable ? '<div class="ms-search-wrap"><input class="ms-search" placeholder="ค้นหา…" autocomplete="off"></div>' : ''}
+        <div class="ms-list"></div>
+        <div class="ms-footer">
+          <button class="ms-clear-btn" type="button">ล้างการเลือก</button>
+        </div>
+      </div>`;
+
+    this._trigger = wrap.querySelector('.ms-trigger');
+    this._panel   = wrap.querySelector('.ms-panel');
+    this._listEl  = wrap.querySelector('.ms-list');
+    this._valEl   = wrap.querySelector('.ms-trigger-val');
+
+    this._renderList(this.allOptions);
+
+    this._trigger.addEventListener('click', e => { e.stopPropagation(); this.toggle(); });
+
+    wrap.querySelector('.ms-clear-btn').addEventListener('click', () => {
+      this.clear(); loadList();
+    });
+
+    if (this.searchable) {
+      const searchEl = wrap.querySelector('.ms-search');
+      searchEl.addEventListener('input', () => {
+        const qStr = searchEl.value.toLowerCase();
+        const filtered = qStr
+          ? this.allOptions.filter(o => o.text.toLowerCase().includes(qStr))
+          : this.allOptions;
+        this._renderList(filtered);
+      });
+    }
+  }
+
+  _renderList(opts) {
+    if (!opts.length) {
+      this._listEl.innerHTML = '<div class="ms-empty">ไม่มีข้อมูล</div>';
+      return;
+    }
+    this._listEl.innerHTML = opts.map(o => `
+      <label class="ms-item${this.selected.has(String(o.value)) ? ' checked' : ''}">
+        <input type="checkbox" value="${esc(String(o.value))}"${this.selected.has(String(o.value)) ? ' checked' : ''}>
+        <span class="ms-item-label">${esc(o.text)}</span>
+      </label>`).join('');
+
+    this._listEl.querySelectorAll('input[type=checkbox]').forEach(cb => {
+      cb.addEventListener('change', () => {
+        const val = String(cb.value);
+        if (cb.checked) this.selected.add(val);
+        else this.selected.delete(val);
+        cb.closest('.ms-item').classList.toggle('checked', cb.checked);
+        this._updateVal();
+        loadList();
+      });
+    });
+  }
+
+  _updateVal() {
+    const n = this.selected.size;
+    const hasVal = n > 0;
+    this._trigger.classList.toggle('has-value', hasVal);
+    if (!hasVal) { this._valEl.textContent = this.placeholder; return; }
+    if (n === 1) {
+      const v = [...this.selected][0];
+      const opt = this.allOptions.find(o => String(o.value) === v);
+      this._valEl.textContent = opt ? opt.text : v;
+    } else {
+      this._valEl.textContent = `${n} ที่เลือก`;
+    }
+  }
+
+  open() {
+    // Close others
+    Object.values(msFilters).forEach(ms => { if (ms !== this) ms.close(); });
+    this._panel.hidden = false;
+    this._trigger.classList.add('open');
+    // Re-render to sync checkmarks
+    const searchEl = document.querySelector(`#${this.id} .ms-search`);
+    const qStr = searchEl ? searchEl.value.toLowerCase() : '';
+    const filtered = qStr ? this.allOptions.filter(o => o.text.toLowerCase().includes(qStr)) : this.allOptions;
+    this._renderList(filtered);
+  }
+
+  close() {
+    this._panel.hidden = true;
+    this._trigger.classList.remove('open');
+  }
+
+  toggle() { this._panel.hidden ? this.open() : this.close(); }
+
+  clear() {
+    this.selected.clear();
+    this._renderList(this.allOptions);
+    this._updateVal();
+  }
+
+  getSelected() { return [...this.selected]; }
 }
 
 // ── Boot ─────────────────────────────────────────────
@@ -491,7 +457,6 @@ async function boot() {
   const res = await fetch(DB_URL);
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-  // Stream with progress
   const total = parseInt(res.headers.get('content-length') || '1617920');
   const reader = res.body.getReader();
   const chunks = [];
@@ -501,25 +466,24 @@ async function boot() {
     if (done) break;
     chunks.push(value);
     received += value.length;
-    const pct = 20 + Math.round((received / total) * 65);
-    setLoad(`กำลังดาวน์โหลด… (${Math.round(received/1024)} KB)`, pct);
+    setLoad(`กำลังดาวน์โหลด… (${Math.round(received/1024)} KB)`, 20 + Math.round((received/total)*65));
   }
 
   setLoad('กำลังเปิดฐานข้อมูล…', 88);
   const buf = new Uint8Array(received);
   let off = 0;
-  for (const chunk of chunks) { buf.set(chunk, off); off += chunk.length; }
+  for (const c of chunks) { buf.set(c, off); off += c.length; }
   DB = new SQL.Database(buf);
 
   setLoad('พร้อมใช้งาน', 100);
-  await new Promise(r => setTimeout(r, 200));
+  await new Promise(r => setTimeout(r, 150));
   document.getElementById('overlay').style.display = 'none';
 
   initUI();
   loadList();
 }
 
-// ── UI init ──────────────────────────────────────────
+// ── Init UI ───────────────────────────────────────────
 
 function initUI() {
   // Stats
@@ -527,99 +491,145 @@ function initUI() {
   const cats_n  = q1('SELECT COUNT(*) n FROM categories').n;
   const tags_n  = q1("SELECT COUNT(*) n FROM tags WHERE status='approved'").n;
   const pending = q1("SELECT COUNT(*) n FROM press_releases WHERE review_status != 'ปกติ'").n;
-
   document.getElementById('hdr-stats').innerHTML = `
     <div><span class="stat-num">${total.toLocaleString()}</span><span class="stat-label">ข่าวทั้งหมด</span></div>
     <div><span class="stat-num">${cats_n}</span><span class="stat-label">หมวดหมู่</span></div>
     <div><span class="stat-num">${tags_n}</span><span class="stat-label">แท็ก</span></div>
-    <div class="stat-warn"><span class="stat-num">${pending}</span><span class="stat-label">ต้องตรวจ</span></div>
-  `;
+    <div class="stat-warn"><span class="stat-num">${pending}</span><span class="stat-label">ต้องตรวจ</span></div>`;
 
-  // Categories
-  const sel = document.getElementById('f-cat');
-  q('SELECT id, name FROM categories ORDER BY name').forEach(c => {
-    sel.innerHTML += `<option value="${c.id}">${c.name}</option>`;
-  });
+  // Build option arrays
+  const catOpts = q('SELECT id, name FROM categories ORDER BY name')
+    .map(r => ({ value: r.id, text: r.name }));
 
-  // Years (descending)
-  const ySel = document.getElementById('f-year');
-  q("SELECT DISTINCT strftime('%Y', publish_date) yr FROM press_releases WHERE publish_date IS NOT NULL ORDER BY yr DESC").forEach(r => {
-    ySel.innerHTML += `<option value="${r.yr}">${parseInt(r.yr)+543}</option>`;
-  });
+  const yearOpts = q("SELECT DISTINCT strftime('%Y', publish_date) yr FROM press_releases WHERE publish_date IS NOT NULL ORDER BY yr DESC")
+    .map(r => ({ value: r.yr, text: `พ.ศ. ${parseInt(r.yr)+543}` }));
 
-  // Tags
-  const tagList = document.getElementById('tag-list');
-  q("SELECT name FROM tags WHERE status='approved' ORDER BY name").forEach(t => {
-    const btn = document.createElement('button');
-    btn.className = 'tag-btn';
-    btn.textContent = t.name;
-    btn.title = t.name;
-    btn.addEventListener('click', () => {
-      if (activeTag === t.name) {
-        activeTag = null;
-        btn.classList.remove('active');
-      } else {
-        tagList.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('active'));
-        activeTag = t.name;
-        btn.classList.add('active');
-      }
-      loadList();
-    });
-    tagList.appendChild(btn);
-  });
+  const statusOpts = [
+    { value: 'ปกติ',    text: '✓ ปกติ' },
+    { value: 'ต้องตรวจ', text: '⚑ ต้องตรวจ' },
+  ];
 
-  // Events
-  ['f-cat','f-year','f-status'].forEach(id =>
-    document.getElementById(id).addEventListener('change', loadList)
-  );
+  const tagOpts = q("SELECT name FROM tags WHERE status='approved' ORDER BY name")
+    .map(r => ({ value: r.name, text: r.name }));
+
+  const unitOpts = q('SELECT DISTINCT unit_name FROM press_release_units ORDER BY unit_name')
+    .map(r => ({ value: r.unit_name, text: r.unit_name }));
+
+  const provOpts = q('SELECT DISTINCT province_name FROM press_release_provinces ORDER BY province_name')
+    .map(r => ({ value: r.province_name, text: r.province_name }));
+
+  const personOpts = q('SELECT DISTINCT person_name FROM press_release_persons ORDER BY person_name')
+    .map(r => ({ value: r.person_name, text: r.person_name }));
+
+  // Create MultiSelect instances
+  msFilters.cat    = new MultiSelect('ms-cat',      { label: 'หมวดหมู่',          options: catOpts,    searchable: catOpts.length > 6 });
+  msFilters.year   = new MultiSelect('ms-year',     { label: 'ปี (พ.ศ.)',          options: yearOpts });
+  msFilters.status = new MultiSelect('ms-status',   { label: 'สถานะตรวจสอบ',      options: statusOpts });
+  msFilters.tag    = new MultiSelect('ms-tag',      { label: 'แท็ก',               options: tagOpts,    searchable: tagOpts.length > 8 });
+  msFilters.unit   = new MultiSelect('ms-unit',     { label: 'หน่วยที่เกี่ยวข้อง', options: unitOpts,   searchable: true });
+  msFilters.prov   = new MultiSelect('ms-province', { label: 'จังหวัด',            options: provOpts,   searchable: provOpts.length > 8 });
+  msFilters.person = new MultiSelect('ms-person',   { label: 'บุคคล',              options: personOpts, searchable: true });
+
+  // Search box
   document.getElementById('search-input').addEventListener('input', () => {
     clearTimeout(debounce);
     debounce = setTimeout(loadList, 280);
   });
-  document.getElementById('btn-reset').addEventListener('click', resetFilters);
+
+  // Reset all
+  document.getElementById('btn-reset').addEventListener('click', resetAll);
+
+  // Close dropdowns on outside click
+  document.addEventListener('click', () => {
+    Object.values(msFilters).forEach(ms => ms.close());
+  });
 }
 
-function resetFilters() {
-  document.getElementById('f-cat').value = '';
-  document.getElementById('f-year').value = '';
-  document.getElementById('f-status').value = '';
+function resetAll() {
+  Object.values(msFilters).forEach(ms => ms.clear());
   document.getElementById('search-input').value = '';
-  document.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('active'));
-  activeTag = null;
   loadList();
+}
+
+// ── Build IN clause helper ────────────────────────────
+
+function buildIn(vals) {
+  if (!vals.length) return null;
+  return { ph: vals.map(() => '?').join(','), params: vals };
 }
 
 // ── Load list ─────────────────────────────────────────
 
 function loadList() {
-  const sq     = document.getElementById('search-input').value.trim();
-  const catId  = document.getElementById('f-cat').value;
-  const year   = document.getElementById('f-year').value;
-  const status = document.getElementById('f-status').value;
+  const sq      = document.getElementById('search-input').value.trim();
+  const cats    = msFilters.cat?.getSelected()    || [];
+  const years   = msFilters.year?.getSelected()   || [];
+  const statuses = msFilters.status?.getSelected() || [];
+  const tags    = msFilters.tag?.getSelected()    || [];
+  const units   = msFilters.unit?.getSelected()   || [];
+  const provs   = msFilters.prov?.getSelected()   || [];
+  const persons = msFilters.person?.getSelected() || [];
+
+  const wheres = [];
+  const params = [];
+
+  // ── Category
+  const catIn = buildIn(cats);
+  if (catIn) { wheres.push(`pr.category_id IN (${catIn.ph})`); params.push(...catIn.params); }
+
+  // ── Year
+  const yearIn = buildIn(years);
+  if (yearIn) { wheres.push(`strftime('%Y', pr.publish_date) IN (${yearIn.ph})`); params.push(...yearIn.params); }
+
+  // ── Status
+  const statusIn = buildIn(statuses);
+  if (statusIn) { wheres.push(`pr.review_status IN (${statusIn.ph})`); params.push(...statusIn.params); }
+
+  // ── Tags
+  const tagIn = buildIn(tags);
+  if (tagIn) {
+    wheres.push(`pr.ref_code IN (SELECT prt.press_release_ref FROM press_release_tags prt JOIN tags t ON prt.tag_id=t.id WHERE t.name IN (${tagIn.ph}))`);
+    params.push(...tagIn.params);
+  }
+
+  // ── Units
+  const unitIn = buildIn(units);
+  if (unitIn) {
+    wheres.push(`pr.ref_code IN (SELECT press_release_ref FROM press_release_units WHERE unit_name IN (${unitIn.ph}))`);
+    params.push(...unitIn.params);
+  }
+
+  // ── Provinces
+  const provIn = buildIn(provs);
+  if (provIn) {
+    wheres.push(`pr.ref_code IN (SELECT press_release_ref FROM press_release_provinces WHERE province_name IN (${provIn.ph}))`);
+    params.push(...provIn.params);
+  }
+
+  // ── Persons
+  const personIn = buildIn(persons);
+  if (personIn) {
+    wheres.push(`pr.ref_code IN (SELECT press_release_ref FROM press_release_persons WHERE person_name IN (${personIn.ph}))`);
+    params.push(...personIn.params);
+  }
 
   let rows;
 
   if (sq) {
-    // FTS search — escape quotes
-    const ftsQ = '"' + sq.replace(/"/g, '""').replace(/\s+/g, '" OR "') + '"';
+    // FTS search
+    const ftsQ = '"' + sq.replace(/"/g,'""').replace(/\s+/g, '" OR "') + '"';
     let sql = `
       SELECT pr.ref_code, pr.publish_date, pr.title, pr.review_status, pr.priority, c.name cat
       FROM press_releases_fts fts
       JOIN press_releases pr ON fts.ref_code = pr.ref_code
       LEFT JOIN categories c ON pr.category_id = c.id
       WHERE press_releases_fts MATCH ?`;
-    const params = [ftsQ];
-    if (catId)  { sql += ' AND pr.category_id = ?'; params.push(catId); }
-    if (year)   { sql += " AND strftime('%Y', pr.publish_date) = ?"; params.push(year); }
-    if (status) { sql += ' AND pr.review_status = ?'; params.push(status); }
-    if (activeTag) {
-      sql += " AND pr.ref_code IN (SELECT prt.press_release_ref FROM press_release_tags prt JOIN tags t ON prt.tag_id=t.id WHERE t.name=?)";
-      params.push(activeTag);
-    }
+    const p = [ftsQ, ...params];
+    if (wheres.length) sql += ' AND ' + wheres.join(' AND ');
     sql += ' ORDER BY rank LIMIT 150';
-    rows = q(sql, params);
+    rows = q(sql, p);
 
-    // Fallback: LIKE search if FTS empty
+    // Fallback: LIKE
     if (!rows.length) {
       const pat = '%' + sq + '%';
       let s2 = `
@@ -627,30 +637,19 @@ function loadList() {
         FROM press_releases pr
         LEFT JOIN categories c ON pr.category_id = c.id
         WHERE (pr.title LIKE ? OR pr.summary LIKE ?)`;
-      const p2 = [pat, pat];
-      if (catId)  { s2 += ' AND pr.category_id = ?'; p2.push(catId); }
-      if (year)   { s2 += " AND strftime('%Y', pr.publish_date) = ?"; p2.push(year); }
-      if (status) { s2 += ' AND pr.review_status = ?'; p2.push(status); }
+      const p2 = [pat, pat, ...params];
+      if (wheres.length) s2 += ' AND ' + wheres.join(' AND ');
       s2 += ' ORDER BY pr.publish_date DESC LIMIT 150';
       rows = q(s2, p2);
     }
-
   } else {
-    let sql = `
+    const where = wheres.length ? 'WHERE ' + wheres.join(' AND ') : '';
+    rows = q(`
       SELECT pr.ref_code, pr.publish_date, pr.title, pr.review_status, pr.priority, c.name cat
       FROM press_releases pr
       LEFT JOIN categories c ON pr.category_id = c.id
-      WHERE 1=1`;
-    const params = [];
-    if (catId)  { sql += ' AND pr.category_id = ?'; params.push(catId); }
-    if (year)   { sql += " AND strftime('%Y', pr.publish_date) = ?"; params.push(year); }
-    if (status) { sql += ' AND pr.review_status = ?'; params.push(status); }
-    if (activeTag) {
-      sql += " AND pr.ref_code IN (SELECT prt.press_release_ref FROM press_release_tags prt JOIN tags t ON prt.tag_id=t.id WHERE t.name=?)";
-      params.push(activeTag);
-    }
-    sql += ' ORDER BY pr.publish_date DESC LIMIT 200';
-    rows = q(sql, params);
+      ${where}
+      ORDER BY pr.publish_date DESC LIMIT 200`, params);
   }
 
   renderList(rows);
@@ -659,39 +658,30 @@ function loadList() {
 // ── Render list ───────────────────────────────────────
 
 function renderList(rows) {
-  const count = rows.length;
   document.getElementById('results-bar').textContent =
-    count ? `แสดง ${count.toLocaleString()} รายการ` : 'ไม่พบข่าวที่ตรงกัน';
+    rows.length ? `แสดง ${rows.length.toLocaleString()} รายการ` : 'ไม่พบข่าวที่ตรงกัน';
 
   const container = document.getElementById('results-list');
-
-  if (!count) {
+  if (!rows.length) {
     container.innerHTML = '<div class="empty-msg">ไม่พบข่าวที่ตรงกับเงื่อนไข</div>';
     return;
   }
 
-  // Build cards (batch DOM update)
-  const html = rows.map(r => {
-    const tags = q(
-      "SELECT t.name n FROM tags t JOIN press_release_tags prt ON t.id=prt.tag_id WHERE prt.press_release_ref=? LIMIT 3",
-      [r.ref_code]
-    );
+  container.innerHTML = rows.map(r => {
+    const tags = q("SELECT t.name n FROM tags t JOIN press_release_tags prt ON t.id=prt.tag_id WHERE prt.press_release_ref=? LIMIT 3", [r.ref_code]);
     const isFlag = r.review_status && r.review_status !== 'ปกติ';
     return `
       <div class="news-card${r.ref_code===activeRef?' active':''}" data-ref="${r.ref_code}">
-        <div class="card-date">${fmtDate(r.publish_date)} · <span style="color:var(--text2);font-size:0.65rem">${r.ref_code}</span></div>
+        <div class="card-date">${fmtDate(r.publish_date)} · <span style="opacity:.6">${r.ref_code}</span></div>
         <div class="card-title">${esc(r.title)}</div>
         <div class="card-badges">
           ${r.cat ? `<span class="badge cat">${esc(r.cat)}</span>` : ''}
           ${isFlag ? `<span class="badge flag">⚑ ${esc(r.review_status)}</span>` : ''}
-          ${tags.map(t => `<span class="badge tag">${esc(t.n)}</span>`).join('')}
+          ${tags.map(t=>`<span class="badge tag">${esc(t.n)}</span>`).join('')}
         </div>
       </div>`;
   }).join('');
 
-  container.innerHTML = html;
-
-  // Event delegation
   container.querySelectorAll('.news-card').forEach(card => {
     card.addEventListener('click', () => showDetail(card.dataset.ref));
   });
@@ -701,16 +691,11 @@ function renderList(rows) {
 
 function showDetail(refCode) {
   activeRef = refCode;
-  // Highlight active card
-  document.querySelectorAll('.news-card').forEach(c => {
-    c.classList.toggle('active', c.dataset.ref === refCode);
-  });
+  document.querySelectorAll('.news-card').forEach(c =>
+    c.classList.toggle('active', c.dataset.ref === refCode)
+  );
 
-  const pr = q1(`
-    SELECT pr.*, c.name cat
-    FROM press_releases pr
-    LEFT JOIN categories c ON pr.category_id = c.id
-    WHERE pr.ref_code = ?`, [refCode]);
+  const pr = q1(`SELECT pr.*, c.name cat FROM press_releases pr LEFT JOIN categories c ON pr.category_id=c.id WHERE pr.ref_code=?`, [refCode]);
   if (!pr) return;
 
   const content   = q1('SELECT full_text FROM press_release_content WHERE ref_code=?', [refCode]);
@@ -723,77 +708,30 @@ function showDetail(refCode) {
   const statusBadge = isFlag
     ? `<span class="d-badge" style="border-color:#7c2020;color:var(--red);background:#160808">⚑ ${esc(pr.review_status)}</span>`
     : `<span class="d-badge" style="border-color:#1a5c2e;color:var(--green);background:#071510">✓ ปกติ</span>`;
-  const prioBadge = pr.priority
-    ? `<span class="d-badge" style="border-color:var(--border);color:var(--text2)">${esc(pr.priority)}</span>`
-    : '';
 
-  const catBadge = pr.cat
-    ? `<span class="d-badge" style="border-color:#2d3d80;color:#93c5fd;background:#0f1833">${esc(pr.cat)}</span>`
-    : '';
-
-  // Info fields
   let infoFields = `
-    <div class="info-field">
-      <label>วันที่เผยแพร่</label>
-      <span>${fmtDate(pr.publish_date)}</span>
-    </div>
-    <div class="info-field">
-      <label>วันที่เหตุการณ์</label>
-      <span>${pr.event_date ? esc(pr.event_date) : '—'}</span>
-    </div>`;
+    <div class="info-field"><label>วันที่เผยแพร่</label><span>${fmtDate(pr.publish_date)}</span></div>
+    <div class="info-field"><label>วันที่เหตุการณ์</label><span>${pr.event_date ? esc(pr.event_date) : '—'}</span></div>`;
+  if (pr.event_action) infoFields += `<div class="info-field full"><label>การดำเนินการ</label><span>${esc(pr.event_action)}</span></div>`;
+  if (units.length)    infoFields += `<div class="info-field full"><label>หน่วยที่เกี่ยวข้อง</label><span>${units.map(u=>esc(u.u)).join(', ')}</span></div>`;
+  if (persons.length)  infoFields += `<div class="info-field full"><label>บุคคลที่เกี่ยวข้อง</label><span>${persons.map(p=>esc(p.p)).join(', ')}</span></div>`;
+  if (provinces.length) infoFields += `<div class="info-field full"><label>จังหวัด</label><span>${provinces.map(pv=>esc(pv.pv)).join(', ')}</span></div>`;
+  if (pr.file_name)    infoFields += `<div class="info-field full"><label>ชื่อไฟล์ต้นฉบับ</label><span style="color:var(--text2);font-size:.8rem">${esc(pr.file_name)}</span></div>`;
+  if (pr.fb_link)      infoFields += `<div class="info-field full"><label>ลิงก์ Facebook</label><span><a href="${esc(pr.fb_link)}" target="_blank" rel="noopener">${esc(pr.fb_link)}</a></span></div>`;
+  if (pr.notes)        infoFields += `<div class="info-field full"><label>หมายเหตุ</label><span style="color:var(--yellow)">${esc(pr.notes)}</span></div>`;
 
-  if (pr.event_action) {
-    infoFields += `<div class="info-field full"><label>การดำเนินการ</label><span>${esc(pr.event_action)}</span></div>`;
-  }
-  if (units.length) {
-    infoFields += `<div class="info-field full"><label>หน่วยที่เกี่ยวข้อง</label><span>${units.map(u=>esc(u.u)).join(', ')}</span></div>`;
-  }
-  if (persons.length) {
-    infoFields += `<div class="info-field full"><label>บุคคลที่เกี่ยวข้อง</label><span>${persons.map(p=>esc(p.p)).join(', ')}</span></div>`;
-  }
-  if (provinces.length) {
-    infoFields += `<div class="info-field"><label>จังหวัด</label><span>${provinces.map(pv=>esc(pv.pv)).join(', ')}</span></div>`;
-  }
-  if (pr.file_name) {
-    infoFields += `<div class="info-field full"><label>ชื่อไฟล์ต้นฉบับ</label><span style="color:var(--text2);font-size:0.8rem">${esc(pr.file_name)}</span></div>`;
-  }
-  if (pr.fb_link) {
-    infoFields += `<div class="info-field full"><label>ลิงก์ Facebook</label><span><a href="${esc(pr.fb_link)}" target="_blank" rel="noopener">${esc(pr.fb_link)}</a></span></div>`;
-  }
-  if (pr.notes) {
-    infoFields += `<div class="info-field full"><label>หมายเหตุ</label><span style="color:var(--yellow)">${esc(pr.notes)}</span></div>`;
-  }
-
-  const tagsHtml = tags.length
-    ? `<div class="section-label">แท็ก</div>
-       <div class="d-tags">${tags.map(t=>`<span class="badge tag" style="font-size:0.78rem;padding:3px 8px">${esc(t.n)}</span>`).join('')}</div>`
-    : '';
-
-  const summaryHtml = pr.summary
-    ? `<div class="section-label">สรุปย่อ</div>
-       <div class="full-text" style="margin-bottom:0">${esc(pr.summary)}</div>`
-    : '';
-
-  const fullTextHtml = content?.full_text
-    ? `<div class="section-label" style="margin-top:18px">เนื้อหาฉบับเต็ม</div>
-       <div class="full-text">${esc(content.full_text)}</div>`
-    : '';
+  const catBadge  = pr.cat ? `<span class="d-badge" style="border-color:#2d3d80;color:#93c5fd;background:#0f1833">${esc(pr.cat)}</span>` : '';
+  const prioBadge = pr.priority ? `<span class="d-badge" style="border-color:var(--border);color:var(--text2)">${esc(pr.priority)}</span>` : '';
+  const tagsHtml  = tags.length ? `<div class="section-label">แท็ก</div><div class="d-tags">${tags.map(t=>`<span class="badge tag" style="font-size:.78rem;padding:3px 8px">${esc(t.n)}</span>`).join('')}</div>` : '';
+  const summaryHtml = pr.summary ? `<div class="section-label">สรุปย่อ</div><div class="full-text" style="margin-bottom:0">${esc(pr.summary)}</div>` : '';
+  const fullHtml  = content?.full_text ? `<div class="section-label" style="margin-top:18px">เนื้อหาฉบับเต็ม</div><div class="full-text">${esc(content.full_text)}</div>` : '';
 
   document.getElementById('detail-panel').innerHTML = `
     <div class="d-ref">${esc(pr.ref_code)}</div>
     <div class="d-title">${esc(pr.title)}</div>
-    <div class="d-badges">
-      ${catBadge}
-      ${statusBadge}
-      ${prioBadge}
-    </div>
-
+    <div class="d-badges">${catBadge}${statusBadge}${prioBadge}</div>
     <div class="info-grid">${infoFields}</div>
-
-    ${summaryHtml}
-    ${tagsHtml}
-    ${fullTextHtml}
-  `;
+    ${summaryHtml}${tagsHtml}${fullHtml}`;
 }
 
 // ── Start ─────────────────────────────────────────────
