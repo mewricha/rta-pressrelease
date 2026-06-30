@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>คลังข่าวแจก กองทัพบก</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg0: #0f1117;
+  --bg1: #1a1d27;
+  --bg2: #242837;
+  --bg3: #2e3347;
+  --border: #2e3347;
+  --text: #e2e8f0;
+  --text2: #94a3b8;
+  --green: #4ade80;
+  --yellow: #fbbf24;
+  --red: #f87171;
+  --blue: #60a5fa;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Sarabun', system-ui, -apple-system, sans-serif;
+  background: var(--bg0);
+  color: var(--text);
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  font-size: 16px;
+}
+
+/* ── Loading ── */
+#overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--bg0);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  z-index: 999;
+}
+.spinner {
+  width: 42px; height: 42px;
+  border: 3px solid var(--border);
+  border-top-color: var(--green);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+#load-msg { color: var(--text2); font-size: 0.9rem; }
+#load-bar-wrap {
+  width: 220px; height: 4px;
+  background: var(--bg2); border-radius: 2px; overflow: hidden;
+}
+#load-bar {
+  height: 100%; width: 0;
+  background: var(--green);
+  transition: width 0.3s;
+}
+
+/* ── Header ── */
+.header {
+  background: var(--bg1);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-shrink: 0;
+}
+.header-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--green);
+}
+.header-sub {
+  font-size: 0.72rem;
+  color: var(--text2);
+}
+.header-stats {
+  margin-left: auto;
+  display: flex;
+  gap: 18px;
+}
+.stat-num {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--green);
+  display: block;
+  text-align: center;
+}
+.stat-label {
+  font-size: 0.65rem;
+  color: var(--text2);
+  display: block;
+  text-align: center;
+}
+.stat-warn .stat-num { color: var(--yellow); }
+
+/* ── Layout ── */
+.layout {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ── Sidebar ── */
+.sidebar {
+  width: 210px;
+  flex-shrink: 0;
+  background: var(--bg1);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.filter-group label {
+  display: block;
+  font-size: 0.68rem;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 5px;
+}
+.filter-group select {
+  width: 100%;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 5px 7px;
+  border-radius: 5px;
+  font-size: 0.82rem;
+  font-family: inherit;
+  cursor: pointer;
+  outline: none;
+}
+.filter-group select:focus { border-color: var(--green); }
+
+.tag-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+.tag-btn {
+  background: none;
+  border: none;
+  color: var(--text2);
+  font-size: 0.78rem;
+  text-align: left;
+  padding: 3px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.12s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tag-btn:hover { background: var(--bg2); color: var(--text); }
+.tag-btn.active { background: var(--bg2); color: var(--green); }
+
+.btn-clear-filter {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text2);
+  font-size: 0.75rem;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: inherit;
+  width: 100%;
+  margin-top: 2px;
+}
+.btn-clear-filter:hover { border-color: var(--red); color: var(--red); }
+
+/* ── List panel ── */
+.list-panel {
+  width: 360px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.search-wrap {
+  padding: 10px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg1);
+  flex-shrink: 0;
+}
+.search-input {
+  width: 100%;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 7px 11px;
+  border-radius: 7px;
+  font-size: 0.88rem;
+  font-family: inherit;
+  outline: none;
+}
+.search-input:focus { border-color: var(--green); }
+.results-bar {
+  padding: 6px 12px;
+  font-size: 0.72rem;
+  color: var(--text2);
+  border-bottom: 1px solid var(--border);
+  background: var(--bg1);
+  flex-shrink: 0;
+}
+.results-list {
+  flex: 1;
+  overflow-y: auto;
+}
+.empty-msg {
+  padding: 32px 16px;
+  text-align: center;
+  color: var(--text2);
+  font-size: 0.85rem;
+}
+
+/* ── News card ── */
+.news-card {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 0.12s;
+  border-left: 3px solid transparent;
+}
+.news-card:hover { background: var(--bg2); }
+.news-card.active { background: var(--bg2); border-left-color: var(--green); }
+.card-date { font-size: 0.68rem; color: var(--text2); margin-bottom: 4px; }
+.card-title {
+  font-size: 0.85rem;
+  font-weight: 500;
+  line-height: 1.45;
+  margin-bottom: 6px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.card-badges { display: flex; flex-wrap: wrap; gap: 4px; }
+
+/* ── Badges ── */
+.badge {
+  font-size: 0.63rem;
+  padding: 2px 6px;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+  color: var(--text2);
+  background: var(--bg2);
+  white-space: nowrap;
+}
+.badge.cat { border-color: #2d3d80; color: #93c5fd; background: #0f1833; }
+.badge.ok  { border-color: #1a5c2e; color: var(--green); background: #071510; }
+.badge.flag { border-color: #7c2020; color: var(--red); background: #160808; }
+.badge.tag { border-color: #1a5c2e; color: var(--green); background: #071510; }
+
+/* ── Detail panel ── */
+.detail-panel {
+  flex: 1;
+  overflow-y: auto;
+  padding: 22px 26px;
+  background: var(--bg0);
+}
+.detail-empty {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--text2);
+  gap: 10px;
+  opacity: 0.45;
+}
+.detail-empty svg { width: 52px; height: 52px; }
+
+.d-ref { font-size: 0.72rem; color: var(--text2); margin-bottom: 6px; }
+.d-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  line-height: 1.45;
+  margin-bottom: 10px;
+}
+.d-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+.d-badge {
+  font-size: 0.78rem;
+  padding: 3px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  background: var(--bg1);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px;
+  margin-bottom: 18px;
+}
+.info-field label {
+  font-size: 0.67rem;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  display: block;
+  margin-bottom: 3px;
+}
+.info-field span {
+  font-size: 0.88rem;
+  line-height: 1.4;
+  word-break: break-all;
+}
+.info-field a { color: var(--blue); }
+.info-field.full { grid-column: span 2; }
+
+.section-label {
+  font-size: 0.68rem;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 8px;
+  margin-top: 18px;
+}
+.d-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 14px; }
+.full-text {
+  font-size: 0.9rem;
+  line-height: 1.85;
+  white-space: pre-wrap;
+  background: var(--bg1);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  color: var(--text);
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--bg3); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #3a4060; }
+</style>
+</head>
+<body>
+
+<!-- Loading overlay -->
+<div id="overlay">
+  <div class="spinner"></div>
+  <div id="load-msg">กำลังเตรียมระบบ...</div>
+  <div id="load-bar-wrap"><div id="load-bar"></div></div>
+</div>
+
+<!-- Header -->
+<div class="header">
+  <div>
+    <div class="header-title">📰 คลังข่าวแจก กองทัพบก</div>
+    <div class="header-sub">ระบบจัดเก็บและค้นหาข่าวแจก ทบ.</div>
+  </div>
+  <div class="header-stats" id="hdr-stats"></div>
+</div>
+
+<!-- Main layout -->
+<div class="layout">
+
+  <!-- Sidebar: filters -->
+  <div class="sidebar">
+    <div class="filter-group">
+      <label>หมวดหมู่</label>
+      <select id="f-cat"><option value="">ทั้งหมด</option></select>
+    </div>
+    <div class="filter-group">
+      <label>ปี (พ.ศ.)</label>
+      <select id="f-year"><option value="">ทั้งหมด</option></select>
+    </div>
+    <div class="filter-group">
+      <label>สถานะตรวจสอบ</label>
+      <select id="f-status">
+        <option value="">ทั้งหมด</option>
+        <option value="ปกติ">ปกติ</option>
+        <option value="ต้องตรวจ">ต้องตรวจ</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>แท็ก</label>
+      <div class="tag-list" id="tag-list"></div>
+    </div>
+    <button class="btn-clear-filter" id="btn-reset">✕ ล้างตัวกรองทั้งหมด</button>
+  </div>
+
+  <!-- List panel -->
+  <div class="list-panel">
+    <div class="search-wrap">
+      <input class="search-input" id="search-input" type="text" placeholder="🔍 ค้นหาข่าว (ชื่อเรื่อง, เนื้อหา)…">
+    </div>
+    <div class="results-bar" id="results-bar">—</div>
+    <div class="results-list" id="results-list"></div>
+  </div>
+
+  <!-- Detail panel -->
+  <div class="detail-panel" id="detail-panel">
+    <div class="detail-empty">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+        <line x1="16" y1="13" x2="8" y2="13"/>
+        <line x1="16" y1="17" x2="8" y2="17"/>
+      </svg>
+      <div>เลือกข่าวจากรายการด้านซ้ายเพื่ออ่านรายละเอียด</div>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/sql-wasm.js"></script>
+<script>
+'use strict';
+
+const DB_URL = 'https://raw.githubusercontent.com/mewricha/rta-pressrelease/main/news.db';
+const MONTHS = ['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+
+let DB = null;
+let activeRef = null;
+let activeTag = null;
+let debounce = null;
+
+// ── Helpers ──────────────────────────────────────────
+
+function fmtDate(s) {
+  if (!s) return '—';
+  try {
+    const p = s.slice(0,10).split('-');
+    return `${parseInt(p[2])} ${MONTHS[parseInt(p[1])]} ${parseInt(p[0])+543}`;
+  } catch(e) { return s; }
+}
+
+function esc(s) {
+  if (!s) return '';
+  return String(s)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+
+function q(sql, params=[]) {
+  try {
+    const stmt = DB.prepare(sql);
+    stmt.bind(params);
+    const rows = [];
+    while (stmt.step()) rows.push(stmt.getAsObject());
+    stmt.free();
+    return rows;
+  } catch(e) {
+    console.error('SQL error:', e.message, '\n', sql);
+    return [];
+  }
+}
+
+function q1(sql, params=[]) {
+  const r = q(sql, params);
+  return r.length ? r[0] : null;
+}
+
+function setLoad(msg, pct) {
+  document.getElementById('load-msg').textContent = msg;
+  if (pct !== undefined) document.getElementById('load-bar').style.width = pct + '%';
+}
+
+// ── Boot ─────────────────────────────────────────────
+
+async function boot() {
+  setLoad('กำลังโหลด sql.js…', 10);
+  const SQL = await initSqlJs({
+    locateFile: f => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/${f}`
+  });
+
+  setLoad('กำลังดาวน์โหลดฐานข้อมูล (≈1.6 MB)…', 20);
+  const res = await fetch(DB_URL);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+  // Stream with progress
+  const total = parseInt(res.headers.get('content-length') || '1617920');
+  const reader = res.body.getReader();
+  const chunks = [];
+  let received = 0;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    chunks.push(value);
+    received += value.length;
+    const pct = 20 + Math.round((received / total) * 65);
+    setLoad(`กำลังดาวน์โหลด… (${Math.round(received/1024)} KB)`, pct);
+  }
+
+  setLoad('กำลังเปิดฐานข้อมูล…', 88);
+  const buf = new Uint8Array(received);
+  let off = 0;
+  for (const chunk of chunks) { buf.set(chunk, off); off += chunk.length; }
+  DB = new SQL.Database(buf);
+
+  setLoad('พร้อมใช้งาน', 100);
+  await new Promise(r => setTimeout(r, 200));
+  document.getElementById('overlay').style.display = 'none';
+
+  initUI();
+  loadList();
+}
+
+// ── UI init ──────────────────────────────────────────
+
+function initUI() {
+  // Stats
+  const total   = q1('SELECT COUNT(*) n FROM press_releases').n;
+  const cats_n  = q1('SELECT COUNT(*) n FROM categories').n;
+  const tags_n  = q1("SELECT COUNT(*) n FROM tags WHERE status='approved'").n;
+  const pending = q1("SELECT COUNT(*) n FROM press_releases WHERE review_status != 'ปกติ'").n;
+
+  document.getElementById('hdr-stats').innerHTML = `
+    <div><span class="stat-num">${total.toLocaleString()}</span><span class="stat-label">ข่าวทั้งหมด</span></div>
+    <div><span class="stat-num">${cats_n}</span><span class="stat-label">หมวดหมู่</span></div>
+    <div><span class="stat-num">${tags_n}</span><span class="stat-label">แท็ก</span></div>
+    <div class="stat-warn"><span class="stat-num">${pending}</span><span class="stat-label">ต้องตรวจ</span></div>
+  `;
+
+  // Categories
+  const sel = document.getElementById('f-cat');
+  q('SELECT id, name FROM categories ORDER BY name').forEach(c => {
+    sel.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+  });
+
+  // Years (descending)
+  const ySel = document.getElementById('f-year');
+  q("SELECT DISTINCT strftime('%Y', publish_date) yr FROM press_releases WHERE publish_date IS NOT NULL ORDER BY yr DESC").forEach(r => {
+    ySel.innerHTML += `<option value="${r.yr}">${parseInt(r.yr)+543}</option>`;
+  });
+
+  // Tags
+  const tagList = document.getElementById('tag-list');
+  q("SELECT name FROM tags WHERE status='approved' ORDER BY name").forEach(t => {
+    const btn = document.createElement('button');
+    btn.className = 'tag-btn';
+    btn.textContent = t.name;
+    btn.title = t.name;
+    btn.addEventListener('click', () => {
+      if (activeTag === t.name) {
+        activeTag = null;
+        btn.classList.remove('active');
+      } else {
+        tagList.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('active'));
+        activeTag = t.name;
+        btn.classList.add('active');
+      }
+      loadList();
+    });
+    tagList.appendChild(btn);
+  });
+
+  // Events
+  ['f-cat','f-year','f-status'].forEach(id =>
+    document.getElementById(id).addEventListener('change', loadList)
+  );
+  document.getElementById('search-input').addEventListener('input', () => {
+    clearTimeout(debounce);
+    debounce = setTimeout(loadList, 280);
+  });
+  document.getElementById('btn-reset').addEventListener('click', resetFilters);
+}
+
+function resetFilters() {
+  document.getElementById('f-cat').value = '';
+  document.getElementById('f-year').value = '';
+  document.getElementById('f-status').value = '';
+  document.getElementById('search-input').value = '';
+  document.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('active'));
+  activeTag = null;
+  loadList();
+}
+
+// ── Load list ─────────────────────────────────────────
+
+function loadList() {
+  const sq     = document.getElementById('search-input').value.trim();
+  const catId  = document.getElementById('f-cat').value;
+  const year   = document.getElementById('f-year').value;
+  const status = document.getElementById('f-status').value;
+
+  let rows;
+
+  if (sq) {
+    // FTS search — escape quotes
+    const ftsQ = '"' + sq.replace(/"/g, '""').replace(/\s+/g, '" OR "') + '"';
+    let sql = `
+      SELECT pr.ref_code, pr.publish_date, pr.title, pr.review_status, pr.priority, c.name cat
+      FROM press_releases_fts fts
+      JOIN press_releases pr ON fts.ref_code = pr.ref_code
+      LEFT JOIN categories c ON pr.category_id = c.id
+      WHERE press_releases_fts MATCH ?`;
+    const params = [ftsQ];
+    if (catId)  { sql += ' AND pr.category_id = ?'; params.push(catId); }
+    if (year)   { sql += " AND strftime('%Y', pr.publish_date) = ?"; params.push(year); }
+    if (status) { sql += ' AND pr.review_status = ?'; params.push(status); }
+    if (activeTag) {
+      sql += " AND pr.ref_code IN (SELECT prt.press_release_ref FROM press_release_tags prt JOIN tags t ON prt.tag_id=t.id WHERE t.name=?)";
+      params.push(activeTag);
+    }
+    sql += ' ORDER BY rank LIMIT 150';
+    rows = q(sql, params);
+
+    // Fallback: LIKE search if FTS empty
+    if (!rows.length) {
+      const pat = '%' + sq + '%';
+      let s2 = `
+        SELECT pr.ref_code, pr.publish_date, pr.title, pr.review_status, pr.priority, c.name cat
+        FROM press_releases pr
+        LEFT JOIN categories c ON pr.category_id = c.id
+        WHERE (pr.title LIKE ? OR pr.summary LIKE ?)`;
+      const p2 = [pat, pat];
+      if (catId)  { s2 += ' AND pr.category_id = ?'; p2.push(catId); }
+      if (year)   { s2 += " AND strftime('%Y', pr.publish_date) = ?"; p2.push(year); }
+      if (status) { s2 += ' AND pr.review_status = ?'; p2.push(status); }
+      s2 += ' ORDER BY pr.publish_date DESC LIMIT 150';
+      rows = q(s2, p2);
+    }
+
+  } else {
+    let sql = `
+      SELECT pr.ref_code, pr.publish_date, pr.title, pr.review_status, pr.priority, c.name cat
+      FROM press_releases pr
+      LEFT JOIN categories c ON pr.category_id = c.id
+      WHERE 1=1`;
+    const params = [];
+    if (catId)  { sql += ' AND pr.category_id = ?'; params.push(catId); }
+    if (year)   { sql += " AND strftime('%Y', pr.publish_date) = ?"; params.push(year); }
+    if (status) { sql += ' AND pr.review_status = ?'; params.push(status); }
+    if (activeTag) {
+      sql += " AND pr.ref_code IN (SELECT prt.press_release_ref FROM press_release_tags prt JOIN tags t ON prt.tag_id=t.id WHERE t.name=?)";
+      params.push(activeTag);
+    }
+    sql += ' ORDER BY pr.publish_date DESC LIMIT 200';
+    rows = q(sql, params);
+  }
+
+  renderList(rows);
+}
+
+// ── Render list ───────────────────────────────────────
+
+function renderList(rows) {
+  const count = rows.length;
+  document.getElementById('results-bar').textContent =
+    count ? `แสดง ${count.toLocaleString()} รายการ` : 'ไม่พบข่าวที่ตรงกัน';
+
+  const container = document.getElementById('results-list');
+
+  if (!count) {
+    container.innerHTML = '<div class="empty-msg">ไม่พบข่าวที่ตรงกับเงื่อนไข</div>';
+    return;
+  }
+
+  // Build cards (batch DOM update)
+  const html = rows.map(r => {
+    const tags = q(
+      "SELECT t.name n FROM tags t JOIN press_release_tags prt ON t.id=prt.tag_id WHERE prt.press_release_ref=? LIMIT 3",
+      [r.ref_code]
+    );
+    const isFlag = r.review_status && r.review_status !== 'ปกติ';
+    return `
+      <div class="news-card${r.ref_code===activeRef?' active':''}" data-ref="${r.ref_code}">
+        <div class="card-date">${fmtDate(r.publish_date)} · <span style="color:var(--text2);font-size:0.65rem">${r.ref_code}</span></div>
+        <div class="card-title">${esc(r.title)}</div>
+        <div class="card-badges">
+          ${r.cat ? `<span class="badge cat">${esc(r.cat)}</span>` : ''}
+          ${isFlag ? `<span class="badge flag">⚑ ${esc(r.review_status)}</span>` : ''}
+          ${tags.map(t => `<span class="badge tag">${esc(t.n)}</span>`).join('')}
+        </div>
+      </div>`;
+  }).join('');
+
+  container.innerHTML = html;
+
+  // Event delegation
+  container.querySelectorAll('.news-card').forEach(card => {
+    card.addEventListener('click', () => showDetail(card.dataset.ref));
+  });
+}
+
+// ── Show detail ───────────────────────────────────────
+
+function showDetail(refCode) {
+  activeRef = refCode;
+  // Highlight active card
+  document.querySelectorAll('.news-card').forEach(c => {
+    c.classList.toggle('active', c.dataset.ref === refCode);
+  });
+
+  const pr = q1(`
+    SELECT pr.*, c.name cat
+    FROM press_releases pr
+    LEFT JOIN categories c ON pr.category_id = c.id
+    WHERE pr.ref_code = ?`, [refCode]);
+  if (!pr) return;
+
+  const content   = q1('SELECT full_text FROM press_release_content WHERE ref_code=?', [refCode]);
+  const tags      = q("SELECT t.name n FROM tags t JOIN press_release_tags prt ON t.id=prt.tag_id WHERE prt.press_release_ref=?", [refCode]);
+  const units     = q("SELECT unit_name u FROM press_release_units WHERE press_release_ref=?", [refCode]);
+  const persons   = q("SELECT person_name p FROM press_release_persons WHERE press_release_ref=?", [refCode]);
+  const provinces = q("SELECT province_name pv FROM press_release_provinces WHERE press_release_ref=?", [refCode]);
+
+  const isFlag = pr.review_status && pr.review_status !== 'ปกติ';
+  const statusBadge = isFlag
+    ? `<span class="d-badge" style="border-color:#7c2020;color:var(--red);background:#160808">⚑ ${esc(pr.review_status)}</span>`
+    : `<span class="d-badge" style="border-color:#1a5c2e;color:var(--green);background:#071510">✓ ปกติ</span>`;
+  const prioBadge = pr.priority
+    ? `<span class="d-badge" style="border-color:var(--border);color:var(--text2)">${esc(pr.priority)}</span>`
+    : '';
+
+  const catBadge = pr.cat
+    ? `<span class="d-badge" style="border-color:#2d3d80;color:#93c5fd;background:#0f1833">${esc(pr.cat)}</span>`
+    : '';
+
+  // Info fields
+  let infoFields = `
+    <div class="info-field">
+      <label>วันที่เผยแพร่</label>
+      <span>${fmtDate(pr.publish_date)}</span>
+    </div>
+    <div class="info-field">
+      <label>วันที่เหตุการณ์</label>
+      <span>${pr.event_date ? esc(pr.event_date) : '—'}</span>
+    </div>`;
+
+  if (pr.event_action) {
+    infoFields += `<div class="info-field full"><label>การดำเนินการ</label><span>${esc(pr.event_action)}</span></div>`;
+  }
+  if (units.length) {
+    infoFields += `<div class="info-field full"><label>หน่วยที่เกี่ยวข้อง</label><span>${units.map(u=>esc(u.u)).join(', ')}</span></div>`;
+  }
+  if (persons.length) {
+    infoFields += `<div class="info-field full"><label>บุคคลที่เกี่ยวข้อง</label><span>${persons.map(p=>esc(p.p)).join(', ')}</span></div>`;
+  }
+  if (provinces.length) {
+    infoFields += `<div class="info-field"><label>จังหวัด</label><span>${provinces.map(pv=>esc(pv.pv)).join(', ')}</span></div>`;
+  }
+  if (pr.file_name) {
+    infoFields += `<div class="info-field full"><label>ชื่อไฟล์ต้นฉบับ</label><span style="color:var(--text2);font-size:0.8rem">${esc(pr.file_name)}</span></div>`;
+  }
+  if (pr.fb_link) {
+    infoFields += `<div class="info-field full"><label>ลิงก์ Facebook</label><span><a href="${esc(pr.fb_link)}" target="_blank" rel="noopener">${esc(pr.fb_link)}</a></span></div>`;
+  }
+  if (pr.notes) {
+    infoFields += `<div class="info-field full"><label>หมายเหตุ</label><span style="color:var(--yellow)">${esc(pr.notes)}</span></div>`;
+  }
+
+  const tagsHtml = tags.length
+    ? `<div class="section-label">แท็ก</div>
+       <div class="d-tags">${tags.map(t=>`<span class="badge tag" style="font-size:0.78rem;padding:3px 8px">${esc(t.n)}</span>`).join('')}</div>`
+    : '';
+
+  const summaryHtml = pr.summary
+    ? `<div class="section-label">สรุปย่อ</div>
+       <div class="full-text" style="margin-bottom:0">${esc(pr.summary)}</div>`
+    : '';
+
+  const fullTextHtml = content?.full_text
+    ? `<div class="section-label" style="margin-top:18px">เนื้อหาฉบับเต็ม</div>
+       <div class="full-text">${esc(content.full_text)}</div>`
+    : '';
+
+  document.getElementById('detail-panel').innerHTML = `
+    <div class="d-ref">${esc(pr.ref_code)}</div>
+    <div class="d-title">${esc(pr.title)}</div>
+    <div class="d-badges">
+      ${catBadge}
+      ${statusBadge}
+      ${prioBadge}
+    </div>
+
+    <div class="info-grid">${infoFields}</div>
+
+    ${summaryHtml}
+    ${tagsHtml}
+    ${fullTextHtml}
+  `;
+}
+
+// ── Start ─────────────────────────────────────────────
+
+boot().catch(err => {
+  document.getElementById('load-msg').textContent = '❌ โหลดไม่สำเร็จ: ' + err.message;
+  document.getElementById('load-bar').style.background = 'var(--red)';
+  console.error(err);
+});
+</script>
+</body>
+</html>
