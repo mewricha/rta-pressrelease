@@ -1,0 +1,246 @@
+{% extends "base.html" %}
+{% block title %}{{ pr.title }} — คลังข่าวแจก กองทัพบก{% endblock %}
+
+{% block extra_css %}
+/* ── Detail layout ── */
+.detail-wrap { display: flex; gap: 0; flex: 1; min-height: 0; }
+
+.article-pane {
+  flex: 1; padding: 24px 28px; overflow-y: auto; min-width: 0;
+}
+.article-pane::-webkit-scrollbar { width: 4px; }
+.article-pane::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+
+.breadcrumb { font-size: 11px; color: var(--text3); margin-bottom: 14px; }
+.breadcrumb a { color: var(--green); }
+.breadcrumb a:hover { text-decoration: underline; }
+
+.art-ref {
+  font-size: 11px; font-family: monospace;
+  color: var(--green); background: var(--green-dim);
+  padding: 3px 9px; border-radius: 5px;
+  display: inline-block; margin-bottom: 12px;
+}
+.art-title {
+  font-size: 20px; font-weight: 700; line-height: 1.4;
+  margin-bottom: 12px; color: var(--text1);
+}
+.art-meta {
+  display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+  padding-bottom: 14px; border-bottom: 1px solid var(--border);
+  margin-bottom: 18px;
+}
+.m-date  { font-size: 12px; color: var(--text2); }
+.m-cat   { font-size: 11px; color: var(--green); background: var(--green-dim); padding: 2px 10px; border-radius: 10px; }
+.m-level { font-size: 11px; color: var(--amber); background: var(--amber-dim); padding: 2px 10px; border-radius: 10px; }
+.m-warn  { font-size: 11px; color: var(--amber); background: var(--amber-dim); padding: 2px 10px; border-radius: 10px; }
+
+.art-summary {
+  font-size: 13.5px; color: var(--text1); line-height: 1.75;
+  padding: 14px 16px; background: var(--bg2);
+  border-left: 3px solid var(--green); border-radius: 0 8px 8px 0;
+  margin-bottom: 20px;
+}
+.art-divider {
+  font-size: 10px; font-weight: 700; color: var(--text3);
+  text-transform: uppercase; letter-spacing: .07em;
+  margin-bottom: 14px; display: flex; align-items: center; gap: 8px;
+}
+.art-divider::after {
+  content: ''; flex: 1; height: 1px; background: var(--border);
+}
+.art-body {
+  font-size: 14px; color: var(--text2); line-height: 1.85;
+  white-space: pre-wrap; word-break: break-word;
+}
+
+/* ── Nav prev/next ── */
+.art-nav {
+  display: flex; gap: 10px; margin-top: 28px; padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
+.nav-btn {
+  flex: 1; padding: 10px 14px; background: var(--bg2);
+  border: 1px solid var(--border); border-radius: var(--radius);
+  font-size: 12px; color: var(--text2); transition: all .12s;
+  display: flex; flex-direction: column; gap: 3px;
+}
+.nav-btn:hover { border-color: var(--green); color: var(--text1); }
+.nav-btn.next { text-align: right; }
+.nav-dir { font-size: 10px; color: var(--text3); }
+.nav-title { font-size: 12px; font-weight: 600; color: var(--text1); line-height: 1.3; }
+
+/* ── Info panel ── */
+.info-pane {
+  width: 230px; flex-shrink: 0;
+  border-left: 1px solid var(--border);
+  background: var(--bg1); padding: 16px;
+  overflow-y: auto; display: flex; flex-direction: column; gap: 16px;
+}
+.info-pane::-webkit-scrollbar { width: 3px; }
+.info-pane::-webkit-scrollbar-thumb { background: var(--border2); }
+
+.iblock-title {
+  font-size: 9.5px; font-weight: 700; color: var(--text3);
+  text-transform: uppercase; letter-spacing: .07em;
+  margin-bottom: 8px;
+}
+.irow {
+  display: flex; gap: 6px; justify-content: space-between;
+  align-items: flex-start; padding: 5px 0;
+  border-bottom: 1px solid var(--border); font-size: 11.5px;
+}
+.irow:last-child { border-bottom: none; }
+.ik { color: var(--text3); flex-shrink: 0; }
+.iv { color: var(--text1); text-align: right; line-height: 1.5; }
+
+.tag-grid { display: flex; flex-wrap: wrap; gap: 5px; }
+.tpill {
+  font-size: 10.5px; padding: 2px 8px; border-radius: 10px;
+  background: var(--bg3); color: var(--green);
+  border: 1px solid var(--green-dim); transition: all .12s;
+}
+.tpill:hover { background: var(--green-dim); }
+
+.list-vals { font-size: 11.5px; color: var(--text2); line-height: 1.8; }
+
+.link-btn {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 11.5px; color: var(--text2);
+  padding: 7px 9px; border-radius: 6px;
+  background: var(--bg2); margin-bottom: 5px;
+  border: 1px solid var(--border); transition: all .12s;
+}
+.link-btn:hover { border-color: var(--green); color: var(--text1); }
+
+.status-ok   { color: var(--green);  font-size: 11.5px; }
+.status-warn { color: var(--amber);  font-size: 11.5px; }
+{% endblock %}
+
+{% block content %}
+<!-- Detail wrap -->
+<div class="detail-wrap">
+
+  <!-- Article body -->
+  <div class="article-pane">
+    <div class="breadcrumb">
+      <a href="/">หน้าหลัก</a> ›
+      {% if pr.category %}<a href="/?cat={{ pr.category|urlencode }}">{{ pr.category }}</a> › {% endif %}
+      {{ pr.ref_code }}
+    </div>
+
+    <div class="art-ref">{{ pr.ref_code }}</div>
+    <h1 class="art-title">{{ pr.title }}</h1>
+
+    <div class="art-meta">
+      <span class="m-date">📅 {{ fmt_date(pr.publish_date) }}</span>
+      {% if pr.category %}<span class="m-cat">{{ pr.category }}</span>{% endif %}
+      {% if pr.priority and pr.priority != 'ปกติ' %}
+        <span class="m-level">⭐ {{ pr.priority }}</span>
+      {% endif %}
+      {% if pr.review_status and pr.review_status != 'ปกติ' %}
+        <span class="m-warn">⚠️ {{ pr.review_status }}</span>
+      {% endif %}
+    </div>
+
+    {% if pr.summary %}
+    <div class="art-summary">{{ pr.summary }}</div>
+    {% endif %}
+
+    {% if full_text %}
+    <div class="art-divider">เนื้อหาฉบับเต็ม</div>
+    <div class="art-body">{{ full_text }}</div>
+    {% endif %}
+
+    <!-- Prev / Next -->
+    <div class="art-nav">
+      {% if prev_r %}
+      <a class="nav-btn prev" href="/news/{{ prev_r.ref_code }}">
+        <span class="nav-dir">← ก่อนหน้า</span>
+        <span class="nav-title">{{ prev_r.title[:50] }}{% if prev_r.title|length > 50 %}…{% endif %}</span>
+      </a>
+      {% else %}<div class="nav-btn" style="opacity:.3"><span class="nav-dir">—</span></div>{% endif %}
+
+      {% if next_r %}
+      <a class="nav-btn next" href="/news/{{ next_r.ref_code }}">
+        <span class="nav-dir">ถัดไป →</span>
+        <span class="nav-title">{{ next_r.title[:50] }}{% if next_r.title|length > 50 %}…{% endif %}</span>
+      </a>
+      {% else %}<div class="nav-btn" style="opacity:.3;text-align:right"><span class="nav-dir">—</span></div>{% endif %}
+    </div>
+  </div>
+
+  <!-- Info panel -->
+  <div class="info-pane">
+
+    <div>
+      <div class="iblock-title">ข้อมูลข่าว</div>
+      <div class="irow"><span class="ik">รหัส</span><span class="iv" style="font-family:monospace;color:var(--green)">{{ pr.ref_code }}</span></div>
+      <div class="irow"><span class="ik">เผยแพร่</span><span class="iv">{{ fmt_date(pr.publish_date) }}</span></div>
+      {% if pr.event_date %}
+      <div class="irow"><span class="ik">เหตุการณ์</span><span class="iv">{{ fmt_date(pr.event_date) }}</span></div>
+      {% endif %}
+      <div class="irow"><span class="ik">ระดับ</span>
+        <span class="iv {% if pr.priority != 'ปกติ' %}status-warn{% else %}status-ok{% endif %}">{{ pr.priority or 'ปกติ' }}</span>
+      </div>
+      <div class="irow"><span class="ik">สถานะ</span>
+        <span class="iv {% if pr.review_status != 'ปกติ' %}status-warn{% else %}status-ok{% endif %}">
+          {% if pr.review_status != 'ปกติ' %}⚠️{% else %}✅{% endif %} {{ pr.review_status or 'ปกติ' }}
+        </span>
+      </div>
+      {% if pr.notes %}
+      <div class="irow" style="flex-direction:column;gap:3px">
+        <span class="ik">หมายเหตุ</span>
+        <span style="font-size:11px;color:var(--amber)">{{ pr.notes }}</span>
+      </div>
+      {% endif %}
+    </div>
+
+    {% if units %}
+    <div>
+      <div class="iblock-title">หน่วยที่เกี่ยวข้อง</div>
+      <div class="list-vals">{{ units|join('<br>')|safe }}</div>
+    </div>
+    {% endif %}
+
+    {% if persons %}
+    <div>
+      <div class="iblock-title">บุคคลสำคัญ</div>
+      <div class="list-vals">{{ persons|join('<br>')|safe }}</div>
+    </div>
+    {% endif %}
+
+    {% if provinces %}
+    <div>
+      <div class="iblock-title">จังหวัด / พื้นที่</div>
+      <div class="list-vals">{{ provinces|join(', ') }}</div>
+    </div>
+    {% endif %}
+
+    {% if tags %}
+    <div>
+      <div class="iblock-title">แท็ก</div>
+      <div class="tag-grid">
+        {% for t in tags %}
+        <a class="tpill" href="/?tag={{ t|urlencode }}">#{{ t }}</a>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    {% if pr.file_name or pr.fb_link %}
+    <div>
+      <div class="iblock-title">ลิงก์</div>
+      {% if pr.file_name %}
+      <div class="link-btn">📄 <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10.5px">{{ pr.file_name }}</span></div>
+      {% endif %}
+      {% if pr.fb_link %}
+      <a class="link-btn" href="{{ pr.fb_link }}" target="_blank" rel="noopener">📘 โพสต์ Facebook</a>
+      {% endif %}
+    </div>
+    {% endif %}
+
+  </div>
+
+</div>
+{% endblock %}
