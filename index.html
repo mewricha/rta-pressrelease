@@ -209,7 +209,16 @@ body {
 .btn-sort:hover { border-color: var(--green); color: var(--green); }
 .btn-sort.asc { border-color: var(--green); color: var(--green); }
 
-.results-bar { padding: 6px 12px; font-size: 0.72rem; color: var(--text2); border-bottom: 1px solid var(--border); background: var(--bg1); flex-shrink: 0; }
+.results-bar { padding: 6px 12px; font-size: 0.72rem; color: var(--text2); border-bottom: 1px solid var(--border); background: var(--bg1); flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.export-btns { display: flex; gap: 6px; flex-shrink: 0; }
+.btn-export { background: var(--bg2); border: 1px solid var(--border); color: var(--text2); font-size: 0.68rem; padding: 3px 8px; border-radius: 4px; cursor: pointer; font-family: inherit; white-space: nowrap; transition: all 0.12s; }
+.btn-export:hover:not(:disabled) { border-color: var(--green); color: var(--green); }
+.btn-export:disabled { opacity: 0.4; cursor: default; }
+.btn-export.done { border-color: var(--green); color: var(--green); }
+.d-toolbar { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 14px; }
+.btn-doc { background: var(--bg1); border: 1px solid var(--border); color: var(--text); font-size: 0.78rem; padding: 5px 12px; border-radius: 6px; cursor: pointer; font-family: inherit; white-space: nowrap; transition: all 0.12s; }
+.btn-doc:hover { border-color: var(--green); color: var(--green); }
+.btn-doc.done { border-color: var(--green); color: var(--green); }
 .results-list { flex: 1; overflow-y: auto; }
 .empty-msg { padding: 32px 16px; text-align: center; color: var(--text2); font-size: 0.85rem; }
 
@@ -352,6 +361,18 @@ body {
   .mobile-back-bar { display: flex; }
   .detail-content { padding: 14px 16px 24px; }
 }
+
+/* ── Print: เฉพาะเนื้อหาข่าวที่เปิดอยู่ บนกระดาษขาว ── */
+@media print {
+  body { overflow: visible; height: auto; }
+  #overlay, .header, .sidebar, .sidebar-overlay, .list-panel, .mobile-back-bar, .d-toolbar, .btn-sidebar-toggle { display: none !important; }
+  .layout { display: block; overflow: visible; }
+  .detail-panel { position: static !important; overflow: visible; padding: 0; background: #fff !important; transform: none !important; }
+  .detail-content { padding: 0 !important; }
+  .detail-panel, .detail-content, .d-title, .d-ref, .section-label, .info-field label, .info-field span, .full-text, .d-badge, a { color: #000 !important; }
+  .full-text, .info-grid { background: #fff !important; border-color: #999 !important; }
+  .full-text { white-space: pre-wrap; }
+}
 </style>
 </head>
 <body>
@@ -402,7 +423,13 @@ body {
       <span class="sort-label">เรียงตามวันที่เผยแพร่</span>
       <button class="btn-sort" id="btn-sort">ใหม่สุดก่อน ↓</button>
     </div>
-    <div class="results-bar" id="results-bar">—</div>
+    <div class="results-bar" id="results-bar">
+      <span id="results-count">—</span>
+      <div class="export-btns">
+        <button class="btn-export" id="btn-copy-list" title="คัดลอกรายการที่แสดงเป็นตาราง (วางใน Excel ได้)" disabled>⧉ คัดลอกตาราง</button>
+        <button class="btn-export" id="btn-xlsx-list" title="ดาวน์โหลดรายการที่แสดงเป็นไฟล์ Excel" disabled>⭳ Excel</button>
+      </div>
+    </div>
     <div class="results-list" id="results-list"></div>
   </div>
 
@@ -432,6 +459,8 @@ let activeRef = null;
 let debounce = null;
 let sortOrder = 'DESC'; // 'DESC' = ใหม่สุดก่อน, 'ASC' = เก่าสุดก่อน
 const msFilters = {};  // id -> MultiSelect instance
+let currentRows = [];    // ผลลัพธ์ที่กรอง/ค้นหาล่าสุด (สำหรับส่งออกรายการ)
+let detailExport = null; // ข้อมูลข่าวที่เปิดอยู่ (สำหรับคัดลอกทั้งฉบับ)
 
 // ── Helpers ──────────────────────────────────────────
 
@@ -710,6 +739,10 @@ function initUI() {
     loadList();
   });
 
+  // Export list (คอลัมน์กลาง)
+  document.getElementById('btn-copy-list').addEventListener('click', copyListTable);
+  document.getElementById('btn-xlsx-list').addEventListener('click', exportListXlsx);
+
   // Reset all
   document.getElementById('btn-reset').addEventListener('click', resetAll);
 
@@ -922,8 +955,12 @@ function loadList() {
 // ── Render list ───────────────────────────────────────
 
 function renderList(rows) {
-  document.getElementById('results-bar').textContent =
+  currentRows = rows;
+  document.getElementById('results-count').textContent =
     rows.length ? `แสดง ${rows.length.toLocaleString()} รายการ` : 'ไม่พบข่าวที่ตรงกัน';
+  const cB = document.getElementById('btn-copy-list'), xB = document.getElementById('btn-xlsx-list');
+  if (cB) cB.disabled = !rows.length;
+  if (xB) xB.disabled = !rows.length;
 
   const container = document.getElementById('results-list');
   if (!rows.length) {
@@ -974,6 +1011,8 @@ function showDetail(refCode) {
   const persons   = q("SELECT person_name p FROM press_release_persons WHERE press_release_ref=?", [refCode]);
   const provinces = q("SELECT province_name pv FROM press_release_provinces WHERE press_release_ref=?", [refCode]);
 
+  detailExport = { pr, content, tags, units, persons, provinces };
+
   const isFlag = pr.review_status && pr.review_status !== 'ปกติ';
   const statusBadge = isFlag
     ? `<span class="d-badge" style="border-color:#7c2020;color:var(--red);background:#160808">⚑ ${esc(pr.review_status)}</span>`
@@ -1001,6 +1040,10 @@ function showDetail(refCode) {
       <button class="btn-back" id="btn-back">← รายการ</button>
     </div>
     <div class="detail-content">
+      <div class="d-toolbar">
+        <button class="btn-doc" id="btn-copy-detail" title="คัดลอกหัวข้อ ข้อมูล และเนื้อหาทั้งหมด">⧉ คัดลอกทั้งฉบับ</button>
+        <button class="btn-doc" id="btn-print-detail" title="พิมพ์ หรือบันทึกเป็น PDF">⎙ พิมพ์ / PDF</button>
+      </div>
       <div class="d-ref">${esc(pr.ref_code)}</div>
       <div class="d-title">${esc(pr.title)}</div>
       <div class="d-badges">${catBadge}${statusBadge}${prioBadge}</div>
@@ -1010,6 +1053,116 @@ function showDetail(refCode) {
 
   const backBtn = document.getElementById('btn-back');
   if (backBtn) backBtn.addEventListener('click', showList);
+
+  const cpBtn = document.getElementById('btn-copy-detail');
+  if (cpBtn) cpBtn.addEventListener('click', copyDetail);
+  const prBtn = document.getElementById('btn-print-detail');
+  if (prBtn) prBtn.addEventListener('click', () => window.print());
+}
+
+// ── Export helpers ────────────────────────────────────
+
+async function copyText(text) {
+  if (window.isSecureContext && navigator.clipboard) {
+    try { await navigator.clipboard.writeText(text); return true; } catch (e) {}
+  }
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.focus(); ta.select();
+    const ok = document.execCommand('copy');
+    document.body.removeChild(ta);
+    return ok;
+  } catch (e) { return false; }
+}
+
+function flashBtn(btn, msg) {
+  if (!btn) return;
+  const old = btn.dataset.label || btn.textContent;
+  btn.dataset.label = old;
+  btn.textContent = msg; btn.classList.add('done');
+  clearTimeout(btn._t);
+  btn._t = setTimeout(() => { btn.textContent = old; btn.classList.remove('done'); btn.dataset.label = ''; }, 1600);
+}
+
+function buildDetailText() {
+  if (!detailExport) return '';
+  const d = detailExport, pr = d.pr, L = [];
+  L.push(pr.title || '');
+  L.push('');
+  L.push('รหัสอ้างอิง: ' + pr.ref_code);
+  L.push('วันที่เผยแพร่: ' + fmtDate(pr.publish_date));
+  if (pr.cat)      L.push('ประเภท: ' + pr.cat);
+  L.push('สถานะ: ' + (pr.review_status || 'ปกติ'));
+  if (pr.priority) L.push('ระดับความสำคัญ: ' + pr.priority);
+  if (d.units.length)     L.push('หน่วยที่เกี่ยวข้อง: ' + d.units.map(u => u.u).join(', '));
+  if (d.persons.length)   L.push('บุคคลที่เกี่ยวข้อง: ' + d.persons.map(p => p.p).join(', '));
+  if (d.provinces.length) L.push('จังหวัด: ' + d.provinces.map(pv => pv.pv).join(', '));
+  if (d.tags.length)      L.push('แท็ก: ' + d.tags.map(t => t.n).join(', '));
+  if (pr.fb_link)  L.push('ลิงก์ Facebook: ' + pr.fb_link);
+  if (pr.notes)    L.push('หมายเหตุ: ' + pr.notes);
+  if (pr.summary)  { L.push(''); L.push('สรุปย่อ'); L.push(pr.summary); }
+  if (d.content && d.content.full_text) { L.push(''); L.push('เนื้อหาฉบับเต็ม'); L.push(d.content.full_text); }
+  return L.join('\n');
+}
+
+async function copyDetail() {
+  const txt = buildDetailText();
+  if (!txt) return;
+  const ok = await copyText(txt);
+  flashBtn(document.getElementById('btn-copy-detail'), ok ? '✓ คัดลอกแล้ว' : '✗ ไม่สำเร็จ');
+}
+
+function getListExportData() {
+  const headers = ['วันที่เผยแพร่','รหัสอ้างอิง','หัวข้อข่าว','ประเภท','สถานะ','ระดับความสำคัญ','แท็ก','หน่วยที่เกี่ยวข้อง','จังหวัด'];
+  const data = currentRows.map(r => {
+    const tags  = q("SELECT t.name n FROM tags t JOIN press_release_tags prt ON t.id=prt.tag_id WHERE prt.press_release_ref=?", [r.ref_code]).map(t => t.n).join(', ');
+    const units = q("SELECT unit_name u FROM press_release_units WHERE press_release_ref=?", [r.ref_code]).map(u => u.u).join(', ');
+    const provs = q("SELECT province_name pv FROM press_release_provinces WHERE press_release_ref=?", [r.ref_code]).map(pv => pv.pv).join(', ');
+    return [ fmtDate(r.publish_date), r.ref_code, r.title || '', r.cat || '', r.review_status || 'ปกติ', r.priority || '', tags, units, provs ];
+  });
+  return { headers, data };
+}
+
+async function copyListTable() {
+  if (!currentRows.length) return;
+  const { headers, data } = getListExportData();
+  const clean = v => String(v).replace(/[\t\r\n]+/g, ' ');
+  const tsv = [headers.join('\t'), ...data.map(row => row.map(clean).join('\t'))].join('\n');
+  const ok = await copyText(tsv);
+  flashBtn(document.getElementById('btn-copy-list'), ok ? '✓ คัดลอกแล้ว' : '✗ ไม่สำเร็จ');
+}
+
+let _xlsxLoading = null;
+function ensureXLSX() {
+  if (window.XLSX) return Promise.resolve();
+  if (_xlsxLoading) return _xlsxLoading;
+  _xlsxLoading = new Promise((res, rej) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+    s.onload = () => res();
+    s.onerror = () => rej(new Error('โหลด SheetJS ไม่สำเร็จ'));
+    document.head.appendChild(s);
+  });
+  return _xlsxLoading;
+}
+
+async function exportListXlsx() {
+  if (!currentRows.length) return;
+  const btn = document.getElementById('btn-xlsx-list');
+  try {
+    await ensureXLSX();
+    const { headers, data } = getListExportData();
+    const ws = XLSX.utils.aoa_to_sheet([headers, ...data]);
+    ws['!cols'] = [{wch:13},{wch:14},{wch:50},{wch:16},{wch:10},{wch:12},{wch:28},{wch:24},{wch:16}];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'ข่าวแจก');
+    const d = new Date().toISOString().slice(0, 10);
+    XLSX.writeFile(wb, `ข่าวแจก_${d}.xlsx`);
+    flashBtn(btn, '✓ ดาวน์โหลด');
+  } catch (e) {
+    flashBtn(btn, '✗ ผิดพลาด');
+  }
 }
 
 // ── Start ─────────────────────────────────────────────
