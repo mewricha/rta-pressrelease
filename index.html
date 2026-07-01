@@ -362,6 +362,43 @@ body {
   .detail-content { padding: 14px 16px 24px; }
 }
 
+/* ── Dashboard ── */
+.btn-view { margin-left: 10px; background: var(--bg2); border: 1px solid var(--border); color: var(--text); font-size: 0.8rem; padding: 6px 12px; border-radius: 7px; cursor: pointer; font-family: inherit; white-space: nowrap; flex-shrink: 0; transition: all 0.12s; }
+.btn-view:hover { border-color: var(--green); color: var(--green); }
+.dash-view { flex: 1; overflow-y: auto; padding: 16px 20px 30px; background: var(--bg0); }
+.dash-filterbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; background: var(--bg1); border: 1px solid var(--border); border-radius: 8px; padding: 9px 11px; margin-bottom: 14px; }
+.dash-fl { font-size: 0.62rem; color: var(--text2); text-transform: uppercase; letter-spacing: 0.08em; }
+.dash-date { font-size: 0.72rem; color: var(--text2); display: inline-flex; align-items: center; gap: 5px; }
+.dash-date input { background: var(--bg2); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 4px 7px; font-family: inherit; font-size: 0.75rem; outline: none; color-scheme: dark; }
+.dash-date input:focus { border-color: var(--green); }
+.dash-msw { min-width: 150px; position: relative; }
+.dash-clear { margin-left: auto; background: none; border: 1px solid var(--border); color: var(--text2); font-size: 0.72rem; padding: 5px 9px; border-radius: 6px; cursor: pointer; font-family: inherit; transition: all 0.12s; }
+.dash-clear:hover { border-color: var(--red); color: var(--red); }
+#dash-view .ms-panel { position: absolute; z-index: 60; left: 0; right: 0; min-width: 200px; border-radius: 6px; }
+.dash-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 14px; }
+.dash-card { background: var(--bg1); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
+.dash-card .lbl { font-size: 0.7rem; color: var(--text2); }
+.dash-card .num { font-size: 1.5rem; font-weight: 700; margin-top: 3px; }
+.dash-row { display: grid; grid-template-columns: 1.4fr 1fr; gap: 12px; margin-bottom: 14px; }
+.dash-panel { background: var(--bg1); border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
+.dash-panel-title { font-size: 0.72rem; color: var(--text2); margin-bottom: 12px; }
+.mbars { display: flex; align-items: flex-end; gap: 4px; height: 120px; }
+.mbar { flex: 1; background: #2e6b45; border-radius: 3px 3px 0 0; min-height: 2px; }
+.mbar.max { background: var(--green); }
+.mbar-x { display: flex; justify-content: space-between; font-size: 0.6rem; color: #64748b; margin-top: 6px; }
+.hbar-row { margin-bottom: 9px; }
+.hbar-lbl { font-size: 0.72rem; color: #cbd5e1; margin-bottom: 3px; }
+.hbar-lbl span { color: var(--text2); }
+.hbar-track { height: 8px; background: var(--bg3); border-radius: 5px; overflow: hidden; }
+.hbar-fill { height: 100%; background: var(--green); border-radius: 5px; }
+.dash-tags-wrap { display: flex; flex-wrap: wrap; gap: 7px; }
+.dash-tagpill { font-size: 0.78rem; color: var(--green); border: 1px solid #1a5c2e; background: #071510; border-radius: 5px; padding: 3px 10px; }
+.dash-empty { color: var(--text2); font-size: 0.8rem; padding: 20px; text-align: center; }
+@media (max-width: 720px) {
+  .dash-cards { grid-template-columns: repeat(2, 1fr); }
+  .dash-row { grid-template-columns: 1fr; }
+}
+
 /* ── Print: เฉพาะเนื้อหาข่าวที่เปิดอยู่ บนกระดาษขาว ── */
 @media print {
   body { overflow: visible; height: auto; }
@@ -392,6 +429,7 @@ body {
     <div class="header-sub">ระบบจัดเก็บและค้นหาข่าวแจก ทบ.</div>
   </div>
   <div class="header-stats" id="hdr-stats"></div>
+  <button class="btn-view" id="btn-view-toggle">📊 แดชบอร์ด</button>
 </div>
 
 <div class="layout">
@@ -447,6 +485,24 @@ body {
   </div>
 </div>
 
+<!-- Dashboard view -->
+<div class="dash-view" id="dash-view" hidden>
+  <div class="dash-filterbar">
+    <span class="dash-fl">ตัวกรอง</span>
+    <label class="dash-date">ตั้งแต่ <input type="date" id="dash-from"></label>
+    <label class="dash-date">ถึง <input type="date" id="dash-to"></label>
+    <div id="dash-ms-cat" class="ms-wrap dash-msw"></div>
+    <div id="dash-ms-tag" class="ms-wrap dash-msw"></div>
+    <button class="dash-clear" id="dash-clear">✕ ล้าง</button>
+  </div>
+  <div class="dash-cards" id="dash-cards"></div>
+  <div class="dash-row">
+    <div class="dash-panel"><div class="dash-panel-title">จำนวนข่าวรายเดือน</div><div id="dash-monthly"></div></div>
+    <div class="dash-panel"><div class="dash-panel-title">แยกตามประเภท</div><div id="dash-cat"></div></div>
+  </div>
+  <div class="dash-panel"><div class="dash-panel-title">แท็กยอดนิยม</div><div id="dash-tags"></div></div>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/sql-wasm.js"></script>
 <script>
 'use strict';
@@ -461,6 +517,8 @@ let sortOrder = 'DESC'; // 'DESC' = ใหม่สุดก่อน, 'ASC' = �
 const msFilters = {};  // id -> MultiSelect instance
 let currentRows = [];    // ผลลัพธ์ที่กรอง/ค้นหาล่าสุด (สำหรับส่งออกรายการ)
 let detailExport = null; // ข้อมูลข่าวที่เปิดอยู่ (สำหรับคัดลอกทั้งฉบับ)
+const dashMs = {};       // MultiSelect ของแดชบอร์ด (ประเภท/แท็ก)
+let dashMode = false;    // อยู่ในมุมมองแดชบอร์ดหรือไม่
 
 // ── Helpers ──────────────────────────────────────────
 
@@ -494,7 +552,7 @@ function setLoad(msg, pct) {
 // ── MultiSelect class ─────────────────────────────────
 
 class MultiSelect {
-  constructor(containerId, { label, options, searchable = false, placeholder = 'ทั้งหมด' }) {
+  constructor(containerId, { label, options, searchable = false, placeholder = 'ทั้งหมด', onChange = null }) {
     this.id = containerId;
     this.label = label;
     this.placeholder = placeholder;
@@ -502,6 +560,7 @@ class MultiSelect {
     this.allOptions = options; // [{value, text}]
     this.selected = new Set();
     this._availableSet = null; // Set<string> of available values; null = all available
+    this.onChange = onChange || loadList; // callback เมื่อค่าเปลี่ยน (ดีฟอลต์ = คลังข่าว)
     this._build();
   }
 
@@ -531,7 +590,7 @@ class MultiSelect {
     this._trigger.addEventListener('click', e => { e.stopPropagation(); this.toggle(); });
 
     wrap.querySelector('.ms-clear-btn').addEventListener('click', () => {
-      this.clear(); loadList();
+      this.clear(); this.onChange();
     });
 
     if (this.searchable) {
@@ -564,7 +623,7 @@ class MultiSelect {
         else this.selected.delete(val);
         cb.closest('.ms-item').classList.toggle('checked', cb.checked);
         this._updateVal();
-        loadList();
+        this.onChange();
       });
     });
 
@@ -743,6 +802,19 @@ function initUI() {
   document.getElementById('btn-copy-list').addEventListener('click', copyListTable);
   document.getElementById('btn-xlsx-list').addEventListener('click', exportListXlsx);
 
+  // Dashboard: ตัวกรอง (ประเภท/แท็ก ใช้ MultiSelect ตัวเดียวกับคลังข่าว) + ปุ่มสลับมุมมอง
+  dashMs.cat = new MultiSelect('dash-ms-cat', { label: 'ประเภท', options: catOpts, searchable: catOpts.length > 6, onChange: renderDashboard });
+  dashMs.tag = new MultiSelect('dash-ms-tag', { label: 'แท็ก',   options: tagOpts, searchable: tagOpts.length > 8, onChange: renderDashboard });
+  document.getElementById('dash-from').addEventListener('change', renderDashboard);
+  document.getElementById('dash-to').addEventListener('change', renderDashboard);
+  document.getElementById('dash-clear').addEventListener('click', () => {
+    dashMs.cat.clear(); dashMs.tag.clear();
+    document.getElementById('dash-from').value = '';
+    document.getElementById('dash-to').value = '';
+    renderDashboard();
+  });
+  document.getElementById('btn-view-toggle').addEventListener('click', toggleView);
+
   // Reset all
   document.getElementById('btn-reset').addEventListener('click', resetAll);
 
@@ -756,6 +828,7 @@ function initUI() {
   // Close dropdowns on outside click
   document.addEventListener('click', () => {
     Object.values(msFilters).forEach(ms => ms.close());
+    Object.values(dashMs).forEach(ms => ms.close());
   });
 }
 
@@ -1163,6 +1236,83 @@ async function exportListXlsx() {
   } catch (e) {
     flashBtn(btn, '✗ ผิดพลาด');
   }
+}
+
+// ── Dashboard ─────────────────────────────────────────
+
+function toggleView() {
+  dashMode = !dashMode;
+  document.querySelector('.layout').style.display = dashMode ? 'none' : '';
+  document.getElementById('dash-view').hidden = !dashMode;
+  document.getElementById('btn-view-toggle').textContent = dashMode ? '📋 คลังข่าว' : '📊 แดชบอร์ด';
+  if (dashMode) renderDashboard();
+}
+
+function dashWhere() {
+  const w = [], p = [];
+  const from = document.getElementById('dash-from').value;
+  const to   = document.getElementById('dash-to').value;
+  if (from) { w.push('pr.publish_date >= ?'); p.push(from); }
+  if (to)   { w.push('pr.publish_date <= ?'); p.push(to); }
+  const cats = dashMs.cat ? dashMs.cat.getSelected() : [];
+  if (cats.length) { w.push(`pr.category_id IN (${cats.map(()=>'?').join(',')})`); p.push(...cats); }
+  const tags = dashMs.tag ? dashMs.tag.getSelected() : [];
+  if (tags.length) {
+    w.push(`pr.ref_code IN (SELECT prt.press_release_ref FROM press_release_tags prt JOIN tags t ON prt.tag_id=t.id WHERE t.name IN (${tags.map(()=>'?').join(',')}))`);
+    p.push(...tags);
+  }
+  return { clause: w.length ? 'WHERE ' + w.join(' AND ') : '', params: p };
+}
+
+function renderDashboard() {
+  const { clause, params } = dashWhere();
+  const AND = clause ? ' AND' : ' WHERE';
+
+  const total = q1(`SELECT COUNT(*) n FROM press_releases pr ${clause}`, params).n;
+
+  const monthly = q(`SELECT strftime('%Y-%m', pr.publish_date) ym, COUNT(*) n FROM press_releases pr ${clause}${AND} pr.publish_date IS NOT NULL GROUP BY ym ORDER BY ym`, params);
+  const avg = monthly.length ? (total / monthly.length) : 0;
+
+  const clarify = q1(`SELECT COUNT(*) n FROM press_releases pr ${clause}${AND} pr.ref_code IN (SELECT prt.press_release_ref FROM press_release_tags prt JOIN tags t ON prt.tag_id=t.id WHERE t.name=?)`, [...params, 'ชี้แจง-ตอบโต้ข่าว']).n;
+
+  const tagCount = q1(`SELECT COUNT(DISTINCT t.id) n FROM tags t JOIN press_release_tags prt ON t.id=prt.tag_id JOIN press_releases pr ON prt.press_release_ref=pr.ref_code ${clause}`, params).n;
+
+  document.getElementById('dash-cards').innerHTML = `
+    <div class="dash-card"><div class="lbl">ข่าวทั้งหมด</div><div class="num">${total.toLocaleString()}</div></div>
+    <div class="dash-card"><div class="lbl">เฉลี่ยต่อเดือน</div><div class="num">${avg.toFixed(1)}</div></div>
+    <div class="dash-card"><div class="lbl" style="color:var(--blue)">ข่าวชี้แจง</div><div class="num" style="color:var(--blue)">${clarify.toLocaleString()}</div></div>
+    <div class="dash-card"><div class="lbl" style="color:var(--green)">แท็กที่ใช้</div><div class="num" style="color:var(--green)">${tagCount.toLocaleString()}</div></div>`;
+
+  const mEl = document.getElementById('dash-monthly');
+  if (!monthly.length) {
+    mEl.innerHTML = '<div class="dash-empty">ไม่มีข้อมูลในช่วงที่เลือก</div>';
+  } else {
+    const maxN = Math.max(...monthly.map(m => m.n));
+    const bars = monthly.map(m => {
+      const h = Math.round((m.n / maxN) * 100);
+      const [y, mo] = m.ym.split('-');
+      return `<div class="mbar${m.n===maxN?' max':''}" style="height:${h}%" title="${MONTHS[parseInt(mo)]} ${parseInt(y)+543}: ${m.n} ข่าว"></div>`;
+    }).join('');
+    const f = monthly[0].ym.split('-'), l = monthly[monthly.length-1].ym.split('-');
+    mEl.innerHTML = `<div class="mbars">${bars}</div>
+      <div class="mbar-x"><span>${MONTHS[parseInt(f[1])]} ${parseInt(f[0])+543}</span><span>${MONTHS[parseInt(l[1])]} ${parseInt(l[0])+543}</span></div>`;
+  }
+
+  const cats = q(`SELECT c.name nm, COUNT(*) n FROM press_releases pr LEFT JOIN categories c ON pr.category_id=c.id ${clause} GROUP BY pr.category_id ORDER BY n DESC LIMIT 8`, params);
+  const cEl = document.getElementById('dash-cat');
+  cEl.innerHTML = cats.length
+    ? cats.map(c => `
+        <div class="hbar-row">
+          <div class="hbar-lbl">${esc(c.nm||'(ไม่ระบุ)')} <span>${c.n}</span></div>
+          <div class="hbar-track"><div class="hbar-fill" style="width:${Math.round((c.n/cats[0].n)*100)}%"></div></div>
+        </div>`).join('')
+    : '<div class="dash-empty">ไม่มีข้อมูล</div>';
+
+  const tags = q(`SELECT t.name nm, COUNT(*) n FROM tags t JOIN press_release_tags prt ON t.id=prt.tag_id JOIN press_releases pr ON prt.press_release_ref=pr.ref_code ${clause} GROUP BY t.id ORDER BY n DESC LIMIT 15`, params);
+  const tEl = document.getElementById('dash-tags');
+  tEl.innerHTML = tags.length
+    ? `<div class="dash-tags-wrap">${tags.map(t=>`<span class="dash-tagpill">${esc(t.nm)} ${t.n}</span>`).join('')}</div>`
+    : '<div class="dash-empty">ไม่มีข้อมูล</div>';
 }
 
 // ── Start ─────────────────────────────────────────────
