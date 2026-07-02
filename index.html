@@ -1320,4 +1320,24 @@ function renderDashboard() {
     ? cats.map(c => `
         <div class="hbar-row">
           <div class="hbar-lbl">${esc(c.nm||'(ไม่ระบุ)')} <span>${c.n}</span></div>
-          <d
+          <div class="hbar-track"><div class="hbar-fill" style="width:${Math.round((c.n/cats[0].n)*100)}%"></div></div>
+        </div>`).join('')
+    : '<div class="dash-empty">ไม่มีข้อมูล</div>';
+
+  const tags = q(`SELECT t.name nm, COUNT(*) n FROM tags t JOIN press_release_tags prt ON t.id=prt.tag_id JOIN press_releases pr ON prt.press_release_ref=pr.ref_code ${clause} GROUP BY t.id ORDER BY n DESC LIMIT 15`, params);
+  const tEl = document.getElementById('dash-tags');
+  tEl.innerHTML = tags.length
+    ? `<div class="dash-tags-wrap">${tags.map(t=>`<span class="dash-tagpill">${esc(t.nm)} ${t.n}</span>`).join('')}</div>`
+    : '<div class="dash-empty">ไม่มีข้อมูล</div>';
+}
+
+// ── Start ─────────────────────────────────────────────
+
+boot().catch(err => {
+  document.getElementById('load-msg').textContent = '❌ โหลดไม่สำเร็จ: ' + err.message;
+  document.getElementById('load-bar').style.background = 'var(--red)';
+  console.error(err);
+});
+</script>
+</body>
+</html>
