@@ -447,6 +447,7 @@ body {
     <div id="ms-tag" class="ms-wrap"></div>
     <div id="ms-unit" class="ms-wrap"></div>
     <div id="ms-province" class="ms-wrap"></div>
+    <div id="ms-place" class="ms-wrap"></div>
     <div id="ms-person" class="ms-wrap"></div>
 
     <button class="btn-reset-all" id="btn-reset">✕ ล้างตัวกรองทั้งหมด</button>
@@ -765,6 +766,9 @@ function initUI() {
   const provOpts = q('SELECT DISTINCT province_name FROM press_release_provinces ORDER BY province_name')
     .map(r => ({ value: r.province_name, text: r.province_name }));
 
+  const placeOpts = q('SELECT DISTINCT place_name FROM press_release_places ORDER BY place_name')
+    .map(r => ({ value: r.place_name, text: r.place_name }));
+
   const personOpts = q('SELECT DISTINCT person_name FROM press_release_persons ORDER BY person_name')
     .map(r => ({ value: r.person_name, text: r.person_name }));
 
@@ -776,6 +780,7 @@ function initUI() {
   msFilters.tag    = new MultiSelect('ms-tag',      { label: 'แท็ก',               options: tagOpts,    searchable: tagOpts.length > 8 });
   msFilters.unit   = new MultiSelect('ms-unit',     { label: 'หน่วยที่เกี่ยวข้อง', options: unitOpts,   searchable: true });
   msFilters.prov   = new MultiSelect('ms-province', { label: 'จังหวัด',            options: provOpts,   searchable: provOpts.length > 8 });
+  msFilters.place  = new MultiSelect('ms-place',    { label: 'สถานที่',            options: placeOpts,  searchable: true });
   msFilters.person = new MultiSelect('ms-person',   { label: 'บุคคล',              options: personOpts, searchable: true });
 
   // Search box
@@ -921,6 +926,13 @@ function buildConditions(excludeFilter = null) {
         params.push(...pi.params);
       }
     },
+    place: vals => {
+      const pli = buildIn(vals);
+      if (pli) {
+        wheres.push(`pr.ref_code IN (SELECT press_release_ref FROM press_release_places WHERE place_name IN (${pli.ph}))`);
+        params.push(...pli.params);
+      }
+    },
     person: vals => {
       const peri = buildIn(vals);
       if (peri) {
@@ -968,11 +980,13 @@ function refreshFilterOptions() {
   const TAG_JOIN   = `FROM tags t JOIN press_release_tags prt ON t.id=prt.tag_id JOIN press_releases pr ON prt.press_release_ref=pr.ref_code LEFT JOIN categories c ON pr.category_id=c.id`;
   const UNIT_JOIN  = `FROM press_release_units pru JOIN press_releases pr ON pru.press_release_ref=pr.ref_code LEFT JOIN categories c ON pr.category_id=c.id`;
   const PROV_JOIN  = `FROM press_release_provinces prp JOIN press_releases pr ON prp.press_release_ref=pr.ref_code LEFT JOIN categories c ON pr.category_id=c.id`;
+  const PLACE_JOIN = `FROM press_release_places prpl JOIN press_releases pr ON prpl.press_release_ref=pr.ref_code LEFT JOIN categories c ON pr.category_id=c.id`;
   const PERS_JOIN  = `FROM press_release_persons prpe JOIN press_releases pr ON prpe.press_release_ref=pr.ref_code LEFT JOIN categories c ON pr.category_id=c.id`;
 
   msFilters.tag?.updateAvailability(getAvailJoined('tag', TAG_JOIN, 't.name'));
   msFilters.unit?.updateAvailability(getAvailJoined('unit', UNIT_JOIN, 'pru.unit_name'));
   msFilters.prov?.updateAvailability(getAvailJoined('prov', PROV_JOIN, 'prp.province_name'));
+  msFilters.place?.updateAvailability(getAvailJoined('place', PLACE_JOIN, 'prpl.place_name'));
   msFilters.person?.updateAvailability(getAvailJoined('person', PERS_JOIN, 'prpe.person_name'));
 }
 
@@ -1083,8 +1097,9 @@ function showDetail(refCode) {
   const units     = q("SELECT unit_name u FROM press_release_units WHERE press_release_ref=?", [refCode]);
   const persons   = q("SELECT person_name p FROM press_release_persons WHERE press_release_ref=?", [refCode]);
   const provinces = q("SELECT province_name pv FROM press_release_provinces WHERE press_release_ref=?", [refCode]);
+  const places    = q("SELECT place_name pl FROM press_release_places WHERE press_release_ref=?", [refCode]);
 
-  detailExport = { pr, content, tags, units, persons, provinces };
+  detailExport = { pr, content, tags, units, persons, provinces, places };
 
   const isFlag = pr.review_status && pr.review_status !== 'ปกติ';
   const statusBadge = isFlag
@@ -1098,6 +1113,7 @@ function showDetail(refCode) {
   if (units.length)     infoFields += `<div class="info-field"><label>หน่วยที่เกี่ยวข้อง</label><span>${units.map(u=>esc(u.u)).join(', ')}</span></div>`;
   if (persons.length)   infoFields += `<div class="info-field"><label>บุคคลที่เกี่ยวข้อง</label><span>${persons.map(p=>esc(p.p)).join(', ')}</span></div>`;
   if (provinces.length) infoFields += `<div class="info-field"><label>จังหวัด</label><span>${provinces.map(pv=>esc(pv.pv)).join(', ')}</span></div>`;
+  if (places.length)    infoFields += `<div class="info-field"><label>สถานที่</label><span>${places.map(pl=>esc(pl.pl)).join(', ')}</span></div>`;
   if (pr.file_name)     infoFields += `<div class="info-field"><label>ชื่อไฟล์ต้นฉบับ</label><span style="color:var(--text2);font-size:.8rem">${esc(String(pr.file_name).split(/[\\/]/).pop())}</span></div>`;
   if (pr.fb_link)       infoFields += `<div class="info-field"><label>ลิงก์ Facebook</label><span><a href="${esc(pr.fb_link)}" target="_blank" rel="noopener">${esc(pr.fb_link)}</a></span></div>`;
   if (pr.notes)         infoFields += `<div class="info-field"><label>หมายเหตุ</label><span style="color:var(--yellow)">${esc(pr.notes)}</span></div>`;
@@ -1304,24 +1320,4 @@ function renderDashboard() {
     ? cats.map(c => `
         <div class="hbar-row">
           <div class="hbar-lbl">${esc(c.nm||'(ไม่ระบุ)')} <span>${c.n}</span></div>
-          <div class="hbar-track"><div class="hbar-fill" style="width:${Math.round((c.n/cats[0].n)*100)}%"></div></div>
-        </div>`).join('')
-    : '<div class="dash-empty">ไม่มีข้อมูล</div>';
-
-  const tags = q(`SELECT t.name nm, COUNT(*) n FROM tags t JOIN press_release_tags prt ON t.id=prt.tag_id JOIN press_releases pr ON prt.press_release_ref=pr.ref_code ${clause} GROUP BY t.id ORDER BY n DESC LIMIT 15`, params);
-  const tEl = document.getElementById('dash-tags');
-  tEl.innerHTML = tags.length
-    ? `<div class="dash-tags-wrap">${tags.map(t=>`<span class="dash-tagpill">${esc(t.nm)} ${t.n}</span>`).join('')}</div>`
-    : '<div class="dash-empty">ไม่มีข้อมูล</div>';
-}
-
-// ── Start ─────────────────────────────────────────────
-
-boot().catch(err => {
-  document.getElementById('load-msg').textContent = '❌ โหลดไม่สำเร็จ: ' + err.message;
-  document.getElementById('load-bar').style.background = 'var(--red)';
-  console.error(err);
-});
-</script>
-</body>
-</html>
+          <d
