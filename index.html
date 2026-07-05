@@ -66,7 +66,6 @@ body {
 .header-stats { margin-left: auto; display: flex; gap: 18px; }
 .stat-num { font-size: 1.05rem; font-weight: 700; color: var(--green); display: block; text-align: center; }
 .stat-label { font-size: 0.65rem; color: var(--text2); display: block; text-align: center; }
-.stat-warn .stat-num { color: var(--yellow); }
 
 /* ── Layout ── */
 .layout { display: flex; flex: 1; overflow: hidden; }
@@ -379,24 +378,61 @@ body {
 .dash-card { background: var(--bg1); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
 .dash-card .lbl { font-size: 0.7rem; color: var(--text2); }
 .dash-card .num { font-size: 1.5rem; font-weight: 700; margin-top: 3px; }
-.dash-row { display: grid; grid-template-columns: 1.4fr 1fr; gap: 12px; margin-bottom: 14px; }
+/* กรอบ "จำนวนข่าวรายเดือน" (ซ้าย, กินพื้นที่ที่เหลือ) + "แยกตามประเภท" (ขวา, fix 25% ของความกว้างจอ)
+   ทั้งคู่ความกว้างคงที่ ไม่ขยับตามปริมาณข้อมูล */
+.dash-row { display: flex; gap: 12px; margin-bottom: 14px; align-items: stretch; }
+.dash-row .dash-panel:first-child { flex: 1 1 auto; min-width: 0; }
+.dash-row .dash-panel:last-child  { flex: 0 0 25vw; width: 25vw; max-width: 25vw; min-width: 0; }
 .dash-panel { background: var(--bg1); border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
 .dash-panel-title { font-size: 0.72rem; color: var(--text2); margin-bottom: 12px; }
-.mbars { display: flex; align-items: flex-end; gap: 4px; height: 120px; }
-.mbar { flex: 1; background: #2e6b45; border-radius: 3px 3px 0 0; min-height: 2px; }
+.mchart-area { position: relative; height: 150px; }
+.mchart-grid {
+  position: absolute; inset: 0;
+  background-image: linear-gradient(to top, var(--border) 1px, transparent 1px);
+  background-size: 100% 25%;
+  background-position: bottom;
+  background-repeat: repeat-y;
+  pointer-events: none;
+}
+.mchart { position: relative; z-index: 1; display: flex; align-items: stretch; gap: 4px; height: 100%; }
+/* เดือนเยอะ (>20) — ลดช่องไฟระหว่างแท่งลง ให้แท่งหดพอดีกรอบที่กว้างคงที่ */
+.mchart.dense { gap: 1px; }
+.mcol { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: flex-end; height: 100%; }
+.mbar-area { width: 100%; height: 100%; display: flex; align-items: flex-end; }
+.mbar { position: relative; width: 100%; background: #2e6b45; border-radius: 3px 3px 0 0; min-height: 2px; }
 .mbar.max { background: var(--green); }
-.mbar-x { display: flex; justify-content: space-between; font-size: 0.6rem; color: #64748b; margin-top: 6px; }
+.mval {
+  position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);
+  margin-bottom: 3px; font-size: 0.62rem; color: var(--text2); white-space: nowrap;
+}
+.mchart.dense .mval { font-size: 0.5rem; }
+.mchart-x { display: flex; gap: 4px; margin-top: 6px; }
+.mchart-x.dense { gap: 1px; }
+.mlbl { flex: 1; min-width: 0; font-size: 0.62rem; color: #64748b; text-align: center; white-space: nowrap; }
+.mchart-x.dense .mlbl { font-size: 0.5rem; }
+.mchart-x.rotate { margin-top: 4px; height: 30px; }
+.mchart-x.rotate .mlbl {
+  transform: rotate(-40deg); transform-origin: top right;
+  text-align: right; white-space: nowrap;
+}
 .hbar-row { margin-bottom: 9px; }
 .hbar-lbl { font-size: 0.72rem; color: #cbd5e1; margin-bottom: 3px; }
 .hbar-lbl span { color: var(--text2); }
 .hbar-track { height: 8px; background: var(--bg3); border-radius: 5px; overflow: hidden; }
 .hbar-fill { height: 100%; background: var(--green); border-radius: 5px; }
 .dash-tags-wrap { display: flex; flex-wrap: wrap; gap: 7px; }
-.dash-tagpill { font-size: 0.78rem; color: var(--green); border: 1px solid #1a5c2e; background: #071510; border-radius: 5px; padding: 3px 10px; }
+/* ป้ายแท็ก — คลิกได้เหมือนตัวกรอง: ปกติ = เขียว, เลือกแล้ว = แดง (โทนเดียวกับ badge ต้องตรวจ) */
+.dash-tagpill {
+  font-size: 0.78rem; color: var(--green); border: 1px solid #1a5c2e; background: #071510;
+  border-radius: 5px; padding: 3px 10px; cursor: pointer; user-select: none; transition: all 0.12s;
+}
+.dash-tagpill:hover { filter: brightness(1.2); }
+.dash-tagpill.active { border-color: #7c2020; color: var(--red); background: #160808; }
 .dash-empty { color: var(--text2); font-size: 0.8rem; padding: 20px; text-align: center; }
 @media (max-width: 720px) {
   .dash-cards { grid-template-columns: repeat(2, 1fr); }
-  .dash-row { grid-template-columns: 1fr; }
+  .dash-row { flex-direction: column; }
+  .dash-row .dash-panel:last-child { width: auto; max-width: none; flex: 1 1 auto; }
 }
 
 /* ── Print: เฉพาะเนื้อหาข่าวที่เปิดอยู่ บนกระดาษขาว ── */
@@ -493,7 +529,14 @@ body {
     <label class="dash-date">ตั้งแต่ <input type="date" id="dash-from"></label>
     <label class="dash-date">ถึง <input type="date" id="dash-to"></label>
     <div id="dash-ms-cat" class="ms-wrap dash-msw"></div>
+    <div id="dash-ms-year" class="ms-wrap dash-msw"></div>
+    <div id="dash-ms-month" class="ms-wrap dash-msw"></div>
+    <div id="dash-ms-status" class="ms-wrap dash-msw"></div>
     <div id="dash-ms-tag" class="ms-wrap dash-msw"></div>
+    <div id="dash-ms-unit" class="ms-wrap dash-msw"></div>
+    <div id="dash-ms-province" class="ms-wrap dash-msw"></div>
+    <div id="dash-ms-place" class="ms-wrap dash-msw"></div>
+    <div id="dash-ms-person" class="ms-wrap dash-msw"></div>
     <button class="dash-clear" id="dash-clear">✕ ล้าง</button>
   </div>
   <div class="dash-cards" id="dash-cards"></div>
@@ -589,6 +632,9 @@ class MultiSelect {
     this._renderList(this.allOptions);
 
     this._trigger.addEventListener('click', e => { e.stopPropagation(); this.toggle(); });
+    // กันคลิกภายในกล่อง (ช่องค้นหา, checkbox, ปุ่มล้าง) หลุดไปโดน document listener
+    // ที่ปิด dropdown ทุกครั้งที่มีคลิกนอกกล่อง — ไม่งั้นพอคลิกช่องค้นหาเพื่อพิมพ์ กล่องจะปิดทันที
+    this._panel.addEventListener('click', e => e.stopPropagation());
 
     wrap.querySelector('.ms-clear-btn').addEventListener('click', () => {
       this.clear(); this.onChange();
@@ -734,12 +780,10 @@ function initUI() {
   const total   = q1('SELECT COUNT(*) n FROM press_releases').n;
   const cats_n  = q1('SELECT COUNT(*) n FROM categories').n;
   const tags_n  = q1("SELECT COUNT(*) n FROM tags WHERE status='approved'").n;
-  const pending = q1("SELECT COUNT(*) n FROM press_releases WHERE review_status != 'ปกติ'").n;
   document.getElementById('hdr-stats').innerHTML = `
     <div><span class="stat-num">${total.toLocaleString()}</span><span class="stat-label">ข่าวทั้งหมด</span></div>
     <div><span class="stat-num">${cats_n}</span><span class="stat-label">หมวดหมู่</span></div>
-    <div><span class="stat-num">${tags_n}</span><span class="stat-label">แท็ก</span></div>
-    <div class="stat-warn"><span class="stat-num">${pending}</span><span class="stat-label">ต้องตรวจ</span></div>`;
+    <div><span class="stat-num">${tags_n}</span><span class="stat-label">แท็ก</span></div>`;
 
   // Build option arrays
   const catOpts = q('SELECT id, name FROM categories ORDER BY name')
@@ -807,13 +851,21 @@ function initUI() {
   document.getElementById('btn-copy-list').addEventListener('click', copyListTable);
   document.getElementById('btn-xlsx-list').addEventListener('click', exportListXlsx);
 
-  // Dashboard: ตัวกรอง (ประเภท/แท็ก ใช้ MultiSelect ตัวเดียวกับคลังข่าว) + ปุ่มสลับมุมมอง
-  dashMs.cat = new MultiSelect('dash-ms-cat', { label: 'ประเภท', options: catOpts, searchable: catOpts.length > 6, onChange: renderDashboard });
-  dashMs.tag = new MultiSelect('dash-ms-tag', { label: 'แท็ก',   options: tagOpts, searchable: tagOpts.length > 8, onChange: renderDashboard });
+  // Dashboard: ตัวกรองครบชุดเหมือนหน้าคลังข่าว แต่เป็นอินสแตนซ์แยกอิสระ (dashMs)
+  // ไม่ผูกค่ากับ msFilters ของหน้าคลังข่าว — เลือกในแดชบอร์ดไม่กระทบตัวกรองฝั่งคลังข่าว และกลับกัน
+  dashMs.cat    = new MultiSelect('dash-ms-cat',      { label: 'ประเภท',            options: catOpts,    searchable: catOpts.length > 6,  onChange: renderDashboard });
+  dashMs.year   = new MultiSelect('dash-ms-year',     { label: 'ปี (พ.ศ.)',          options: yearOpts,   onChange: renderDashboard });
+  dashMs.month  = new MultiSelect('dash-ms-month',    { label: 'เดือน',             options: monthOpts,  onChange: renderDashboard });
+  dashMs.status = new MultiSelect('dash-ms-status',   { label: 'สถานะตรวจสอบ',      options: statusOpts, onChange: renderDashboard });
+  dashMs.tag    = new MultiSelect('dash-ms-tag',      { label: 'แท็ก',               options: tagOpts,    searchable: tagOpts.length > 8,  onChange: renderDashboard });
+  dashMs.unit   = new MultiSelect('dash-ms-unit',     { label: 'หน่วยที่เกี่ยวข้อง', options: unitOpts,   searchable: true,                onChange: renderDashboard });
+  dashMs.prov   = new MultiSelect('dash-ms-province', { label: 'จังหวัด',            options: provOpts,   searchable: provOpts.length > 8, onChange: renderDashboard });
+  dashMs.place  = new MultiSelect('dash-ms-place',    { label: 'สถานที่',            options: placeOpts,  searchable: true,                onChange: renderDashboard });
+  dashMs.person = new MultiSelect('dash-ms-person',   { label: 'บุคคล',              options: personOpts, searchable: true,                onChange: renderDashboard });
   document.getElementById('dash-from').addEventListener('change', renderDashboard);
   document.getElementById('dash-to').addEventListener('change', renderDashboard);
   document.getElementById('dash-clear').addEventListener('click', () => {
-    dashMs.cat.clear(); dashMs.tag.clear();
+    Object.values(dashMs).forEach(ms => ms.clear());
     document.getElementById('dash-from').value = '';
     document.getElementById('dash-to').value = '';
     renderDashboard();
@@ -881,12 +933,15 @@ function buildIn(vals) {
 }
 
 // ── Build WHERE conditions from all active filters ────
+// filterSet: msFilters (คลังข่าว) หรือ dashMs (แดชบอร์ด) — ทั้งสองใช้ id เดียวกัน
+//            (cat/year/month/status/tag/unit/prov/place/person) จึงใช้ตรรกะร่วมกันได้
 // excludeFilter: filter id (string) to skip — used by refreshFilterOptions
+// extra: { wheres, params } เงื่อนไขเพิ่มเติมที่ต้องใส่เสมอ (เช่น ช่วงวันที่ของแดชบอร์ด)
 // Returns { wheres: string[], params: any[] }
 
-function buildConditions(excludeFilter = null) {
-  const wheres = [];
-  const params = [];
+function buildConditions(filterSet, excludeFilter = null, extra = null) {
+  const wheres = extra ? [...extra.wheres] : [];
+  const params = extra ? [...extra.params] : [];
 
   const FILTER_DEFS = {
     cat: vals => {
@@ -944,57 +999,63 @@ function buildConditions(excludeFilter = null) {
 
   for (const [id, fn] of Object.entries(FILTER_DEFS)) {
     if (id === excludeFilter) continue;
-    fn(msFilters[id]?.getSelected() || []);
+    fn(filterSet[id]?.getSelected() || []);
   }
 
   return { wheres, params };
 }
 
 // ── Refresh filter options (cascading / dynamic availability) ─────────────
+// ใช้ร่วมกันได้ทั้งหน้าคลังข่าว (msFilters) และแดชบอร์ด (dashMs) ผ่าน filterSet param
 
-function refreshFilterOptions() {
+// Many-to-many filters ต้องมี JOIN ของตัวเอง — ประกาศไว้ระดับโมดูลเพื่อใช้ร่วมกันได้
+const TAG_JOIN   = `FROM tags t JOIN press_release_tags prt ON t.id=prt.tag_id JOIN press_releases pr ON prt.press_release_ref=pr.ref_code LEFT JOIN categories c ON pr.category_id=c.id`;
+const UNIT_JOIN  = `FROM press_release_units pru JOIN press_releases pr ON pru.press_release_ref=pr.ref_code LEFT JOIN categories c ON pr.category_id=c.id`;
+const PROV_JOIN  = `FROM press_release_provinces prp JOIN press_releases pr ON prp.press_release_ref=pr.ref_code LEFT JOIN categories c ON pr.category_id=c.id`;
+const PLACE_JOIN = `FROM press_release_places prpl JOIN press_releases pr ON prpl.press_release_ref=pr.ref_code LEFT JOIN categories c ON pr.category_id=c.id`;
+const PERS_JOIN  = `FROM press_release_persons prpe JOIN press_releases pr ON prpe.press_release_ref=pr.ref_code LEFT JOIN categories c ON pr.category_id=c.id`;
+
+function refreshFilterOptionsFor(filterSet, extra = null) {
   // Base FROM clause shared by simple filters
   const BASE = `FROM press_releases pr LEFT JOIN categories c ON pr.category_id = c.id`;
 
   // Helper: get available values for a simple column expression
   function getAvailSimple(excludeFilter, valueExpr) {
-    const { wheres, params } = buildConditions(excludeFilter);
+    const { wheres, params } = buildConditions(filterSet, excludeFilter, extra);
     const where = wheres.length ? 'WHERE ' + wheres.join(' AND ') : '';
     const rows = q(`SELECT DISTINCT ${valueExpr} v ${BASE} ${where}`, params);
     return new Set(rows.map(r => String(r.v)).filter(v => v !== 'null'));
   }
 
-  msFilters.cat?.updateAvailability(getAvailSimple('cat', 'pr.category_id'));
-  msFilters.year?.updateAvailability(getAvailSimple('year', "strftime('%Y', pr.publish_date)"));
-  msFilters.month?.updateAvailability(getAvailSimple('month', "strftime('%m', pr.publish_date)"));
-  msFilters.status?.updateAvailability(getAvailSimple('status', 'pr.review_status'));
+  filterSet.cat?.updateAvailability(getAvailSimple('cat', 'pr.category_id'));
+  filterSet.year?.updateAvailability(getAvailSimple('year', "strftime('%Y', pr.publish_date)"));
+  filterSet.month?.updateAvailability(getAvailSimple('month', "strftime('%m', pr.publish_date)"));
+  filterSet.status?.updateAvailability(getAvailSimple('status', 'pr.review_status'));
 
   // Many-to-many filters need their own JOIN
   function getAvailJoined(excludeFilter, joinSql, valCol) {
-    const { wheres, params } = buildConditions(excludeFilter);
+    const { wheres, params } = buildConditions(filterSet, excludeFilter, extra);
     const where = wheres.length ? 'WHERE ' + wheres.join(' AND ') : '';
     const rows = q(`SELECT DISTINCT ${valCol} v ${joinSql} ${where}`, params);
     return new Set(rows.map(r => String(r.v)).filter(v => v !== 'null'));
   }
 
-  const TAG_JOIN   = `FROM tags t JOIN press_release_tags prt ON t.id=prt.tag_id JOIN press_releases pr ON prt.press_release_ref=pr.ref_code LEFT JOIN categories c ON pr.category_id=c.id`;
-  const UNIT_JOIN  = `FROM press_release_units pru JOIN press_releases pr ON pru.press_release_ref=pr.ref_code LEFT JOIN categories c ON pr.category_id=c.id`;
-  const PROV_JOIN  = `FROM press_release_provinces prp JOIN press_releases pr ON prp.press_release_ref=pr.ref_code LEFT JOIN categories c ON pr.category_id=c.id`;
-  const PLACE_JOIN = `FROM press_release_places prpl JOIN press_releases pr ON prpl.press_release_ref=pr.ref_code LEFT JOIN categories c ON pr.category_id=c.id`;
-  const PERS_JOIN  = `FROM press_release_persons prpe JOIN press_releases pr ON prpe.press_release_ref=pr.ref_code LEFT JOIN categories c ON pr.category_id=c.id`;
+  filterSet.tag?.updateAvailability(getAvailJoined('tag', TAG_JOIN, 't.name'));
+  filterSet.unit?.updateAvailability(getAvailJoined('unit', UNIT_JOIN, 'pru.unit_name'));
+  filterSet.prov?.updateAvailability(getAvailJoined('prov', PROV_JOIN, 'prp.province_name'));
+  filterSet.place?.updateAvailability(getAvailJoined('place', PLACE_JOIN, 'prpl.place_name'));
+  filterSet.person?.updateAvailability(getAvailJoined('person', PERS_JOIN, 'prpe.person_name'));
+}
 
-  msFilters.tag?.updateAvailability(getAvailJoined('tag', TAG_JOIN, 't.name'));
-  msFilters.unit?.updateAvailability(getAvailJoined('unit', UNIT_JOIN, 'pru.unit_name'));
-  msFilters.prov?.updateAvailability(getAvailJoined('prov', PROV_JOIN, 'prp.province_name'));
-  msFilters.place?.updateAvailability(getAvailJoined('place', PLACE_JOIN, 'prpl.place_name'));
-  msFilters.person?.updateAvailability(getAvailJoined('person', PERS_JOIN, 'prpe.person_name'));
+function refreshFilterOptions() {
+  refreshFilterOptionsFor(msFilters);
 }
 
 // ── Load list ─────────────────────────────────────────
 
 function loadList() {
   const sq = document.getElementById('search-input').value.trim();
-  const { wheres, params } = buildConditions();
+  const { wheres, params } = buildConditions(msFilters);
 
   let rows;
 
@@ -1264,24 +1325,30 @@ function toggleView() {
   if (dashMode) renderDashboard();
 }
 
-function dashWhere() {
-  const w = [], p = [];
+// ช่วงวันที่ของแดชบอร์ด — เป็นเงื่อนไข "always-on" ไม่อยู่ในชุด FILTER_DEFS ของ buildConditions
+// (ไม่มีตัวกรองอื่นมา cascade ตัดวันที่ออก จึงใส่เป็น extra เสมอ)
+function dashExtra() {
+  const wheres = [], params = [];
   const from = document.getElementById('dash-from').value;
   const to   = document.getElementById('dash-to').value;
-  if (from) { w.push('pr.publish_date >= ?'); p.push(from); }
-  if (to)   { w.push('pr.publish_date <= ?'); p.push(to); }
-  const cats = dashMs.cat ? dashMs.cat.getSelected() : [];
-  if (cats.length) { w.push(`pr.category_id IN (${cats.map(()=>'?').join(',')})`); p.push(...cats); }
-  const tags = dashMs.tag ? dashMs.tag.getSelected() : [];
-  if (tags.length) {
-    w.push(`pr.ref_code IN (SELECT prt.press_release_ref FROM press_release_tags prt JOIN tags t ON prt.tag_id=t.id WHERE t.name IN (${tags.map(()=>'?').join(',')}))`);
-    p.push(...tags);
-  }
-  return { clause: w.length ? 'WHERE ' + w.join(' AND ') : '', params: p };
+  if (from) { wheres.push('pr.publish_date >= ?'); params.push(from); }
+  if (to)   { wheres.push('pr.publish_date <= ?'); params.push(to); }
+  return { wheres, params };
+}
+
+// ป้ายแท็กด้านล่างแดชบอร์ด = ตัวกรองเดียวกับ dropdown "แท็ก" (dashMs.tag) ไม่ใช่สถานะแยก
+// คลิกป้าย → toggle เข้า/ออกจาก selected set แล้ว re-render ทั้งแดชบอร์ดให้ตรงกัน
+function toggleDashTagPill(tagName) {
+  if (!dashMs.tag) return;
+  const sel = dashMs.tag.selected;
+  if (sel.has(tagName)) sel.delete(tagName); else sel.add(tagName);
+  dashMs.tag._updateVal(); // sync label ของ dropdown ให้ตรงกับที่คลิกจากป้าย
+  renderDashboard();
 }
 
 function renderDashboard() {
-  const { clause, params } = dashWhere();
+  const { wheres, params } = buildConditions(dashMs, null, dashExtra());
+  const clause = wheres.length ? 'WHERE ' + wheres.join(' AND ') : '';
   const AND = clause ? ' AND' : ' WHERE';
 
   const total = q1(`SELECT COUNT(*) n FROM press_releases pr ${clause}`, params).n;
@@ -1304,14 +1371,26 @@ function renderDashboard() {
     mEl.innerHTML = '<div class="dash-empty">ไม่มีข้อมูลในช่วงที่เลือก</div>';
   } else {
     const maxN = Math.max(...monthly.map(m => m.n));
-    const bars = monthly.map(m => {
-      const h = Math.round((m.n / maxN) * 100);
+    const manyMonths = monthly.length > 8;   // เดือนเยอะ → หมุนป้ายเดือน 45°
+    const denseMonths = monthly.length > 20; // เดือนเยอะมาก → ลดช่องไฟ/ตัวอักษรลงอีก ให้แท่งพอดีกรอบคงที่
+    // เผื่อพื้นที่ด้านบน ~18% ไว้ใส่ตัวเลขจำนวนข่าวเหนือแท่งที่สูงสุด ไม่ให้ชนขอบ
+    const cols = monthly.map(m => {
+      const h = maxN ? Math.round((m.n / maxN) * 82) + 3 : 3;
       const [y, mo] = m.ym.split('-');
-      return `<div class="mbar${m.n===maxN?' max':''}" style="height:${h}%" title="${MONTHS[parseInt(mo)]} ${parseInt(y)+543}: ${m.n} ข่าว"></div>`;
+      return `<div class="mcol">
+        <div class="mbar-area"><div class="mbar${m.n===maxN?' max':''}" style="height:${h}%" title="${MONTHS[parseInt(mo)]} ${parseInt(y)+543}: ${m.n} ข่าว"><span class="mval">${m.n}</span></div></div>
+      </div>`;
     }).join('');
-    const f = monthly[0].ym.split('-'), l = monthly[monthly.length-1].ym.split('-');
-    mEl.innerHTML = `<div class="mbars">${bars}</div>
-      <div class="mbar-x"><span>${MONTHS[parseInt(f[1])]} ${parseInt(f[0])+543}</span><span>${MONTHS[parseInt(l[1])]} ${parseInt(l[0])+543}</span></div>`;
+    const labels = monthly.map(m => {
+      const [y, mo] = m.ym.split('-');
+      return `<div class="mlbl">${MONTHS[parseInt(mo)]} ${String(parseInt(y)+543).slice(-2)}</div>`;
+    }).join('');
+    mEl.innerHTML = `
+      <div class="mchart-area">
+        <div class="mchart-grid"></div>
+        <div class="mchart${denseMonths ? ' dense' : ''}">${cols}</div>
+      </div>
+      <div class="mchart-x${manyMonths ? ' rotate' : ''}${denseMonths ? ' dense' : ''}">${labels}</div>`;
   }
 
   const cats = q(`SELECT c.name nm, COUNT(*) n FROM press_releases pr LEFT JOIN categories c ON pr.category_id=c.id ${clause} GROUP BY pr.category_id ORDER BY n DESC LIMIT 8`, params);
@@ -1326,9 +1405,20 @@ function renderDashboard() {
 
   const tags = q(`SELECT t.name nm, COUNT(*) n FROM tags t JOIN press_release_tags prt ON t.id=prt.tag_id JOIN press_releases pr ON prt.press_release_ref=pr.ref_code ${clause} GROUP BY t.id ORDER BY n DESC LIMIT 15`, params);
   const tEl = document.getElementById('dash-tags');
+  const selectedTags = dashMs.tag ? dashMs.tag.getSelected() : [];
   tEl.innerHTML = tags.length
-    ? `<div class="dash-tags-wrap">${tags.map(t=>`<span class="dash-tagpill">${esc(t.nm)} ${t.n}</span>`).join('')}</div>`
+    ? `<div class="dash-tags-wrap">${tags.map(t => {
+        const active = selectedTags.includes(t.nm);
+        return `<span class="dash-tagpill${active ? ' active' : ''}" data-tag="${esc(t.nm)}">${esc(t.nm)} ${t.n}</span>`;
+      }).join('')}</div>`
     : '<div class="dash-empty">ไม่มีข้อมูล</div>';
+  // ป้ายแท็ก = ตัวกรองเดียวกับ dropdown "แท็ก" ด้านบน — คลิกเพื่อ toggle เข้า/ออก แล้ว re-render ทั้งแดชบอร์ด
+  tEl.querySelectorAll('.dash-tagpill').forEach(pill => {
+    pill.addEventListener('click', () => toggleDashTagPill(pill.dataset.tag));
+  });
+
+  // Cross-filter: ตัวเลือกในตัวกรองแดชบอร์ดอื่นๆ จะจางลงถ้าเลือกแล้วไม่มีข่าวเหลือ (เหมือนหน้าคลังข่าว)
+  refreshFilterOptionsFor(dashMs, dashExtra());
 }
 
 // ── Start ─────────────────────────────────────────────
