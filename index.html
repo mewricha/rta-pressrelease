@@ -23,14 +23,13 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* หน้าเดียวเลื่อนยาวได้ (ไม่ fix ความสูงเหมือนเดิม) */
 body {
   font-family: 'Sarabun', system-ui, -apple-system, sans-serif;
   background: var(--bg0);
   color: var(--text);
-  height: 100vh;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
+  min-height: 100vh;
+  overflow-x: hidden;
 }
 
 /* ── Loading ── */
@@ -53,13 +52,14 @@ body {
 #load-bar-wrap { width: 220px; height: 4px; background: var(--bg2); border-radius: 2px; overflow: hidden; }
 #load-bar { height: 100%; width: 0; background: var(--green); transition: width 0.3s; }
 
+/* ── Topbar (header + ตัวกรอง) ตรึงบนสุดเมื่อเลื่อนหน้า ── */
+.topbar { position: sticky; top: 0; z-index: 90; background: var(--bg0); }
 /* ── Header ── */
 .header {
   background: var(--bg1);
   border-bottom: 1px solid var(--border);
-  padding: 10px 18px;
+  padding: 9px 18px;
   display: flex; align-items: center; gap: 14px;
-  flex-shrink: 0;
 }
 .header-title { font-size: 1rem; font-weight: 700; color: var(--green); }
 .header-sub { font-size: 0.72rem; color: var(--text2); }
@@ -67,36 +67,65 @@ body {
 .stat-num { font-size: 1.05rem; font-weight: 700; color: var(--green); display: block; text-align: center; }
 .stat-label { font-size: 0.65rem; color: var(--text2); display: block; text-align: center; }
 
-/* ── Layout ── */
-.layout { display: flex; flex: 1; overflow: hidden; }
+/* ── หน้าเดียว: โครง A–G ── */
+.page { padding: 12px 16px 34px; display: flex; flex-direction: column; gap: 12px; }
+.panel { background: var(--bg1); border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
+.panel-title { font-size: 0.72rem; color: var(--yellow); margin-bottom: 12px; }
 
-/* ── Sidebar ── */
-.sidebar {
-  width: 230px; flex-shrink: 0;
-  background: var(--bg1);
-  border-right: 1px solid var(--border);
-  overflow-y: auto;
-  padding: 10px 10px 16px;
-  display: flex; flex-direction: column; gap: 4px;
+/* โซน A — แถบตัวกรอง (บรรทัดเดียว, อยู่ใน topbar ตรึงบน) */
+.zone-a {
+  margin: 9px 16px 10px;
+  background: var(--bg1); border: 1px solid var(--border); border-radius: 10px;
+  padding: 8px 10px;
+  display: flex; flex-wrap: wrap; gap: 6px 8px; align-items: center;
 }
-.sidebar-section-label {
-  font-size: 0.63rem; color: var(--text2);
-  text-transform: uppercase; letter-spacing: 0.1em;
-  padding: 8px 4px 3px;
+.zone-a .zone-lbl { font-size: 0.68rem; color: var(--yellow); font-weight: 600; white-space: nowrap; flex: 0 0 auto; }
+.zone-a .ms-wrap { flex: 1 1 185px; min-width: 0; position: relative; }
+/* บังคับตัดขึ้นบรรทัดใหม่ (ล็อกตัวกรองเป็น 2 แถวตามลำดับที่กำหนด) */
+.zone-break { flex-basis: 100%; height: 0; margin: 0; }
+/* dropdown ในแถบแนวนอน — ลอยทับด้านล่าง */
+.zone-a .ms-panel { position: absolute; z-index: 70; left: 0; right: 0; min-width: 190px; border-radius: 6px; }
+/* อักษรตัวกรองขนาดเท่ากันทุกช่อง */
+.zone-a .ms-trigger { font-size: 0.78rem; padding: 6px 7px; }
+.zone-a .ms-trigger-label { font-size: 0.66rem; }
+.z-date { font-size: 0.78rem; color: var(--yellow); display: inline-flex; align-items: center; gap: 3px; flex: 0 0 auto; white-space: nowrap; }
+.z-date input {
+  background: var(--bg2); border: 1px solid var(--border); color: var(--text);
+  border-radius: 6px; padding: 5px; font-family: inherit; font-size: 0.78rem;
+  outline: none; color-scheme: dark; width: 118px;
 }
-.btn-reset-all {
-  margin-top: 8px;
+.z-date input:focus { border-color: var(--green); }
+
+/* ปุ่มล้างตัวกรอง (ย้ายมาอยู่ใน header ขวาสุด) */
+.btn-header-reset {
+  flex-shrink: 0; margin-left: 16px;
   background: none; border: 1px solid var(--border);
-  color: var(--text2); font-size: 0.75rem;
-  padding: 5px 8px; border-radius: 5px;
-  cursor: pointer; font-family: inherit; width: 100%;
-  transition: all 0.12s;
+  color: var(--text2); font-size: 0.78rem;
+  padding: 6px 12px; border-radius: 6px;
+  cursor: pointer; font-family: inherit; white-space: nowrap; transition: all 0.12s;
 }
-.btn-reset-all:hover { border-color: var(--red); color: var(--red); }
+.btn-header-reset:hover { border-color: var(--red); color: var(--red); }
+
+/* แถว C | D */
+.row-cd { display: flex; gap: 12px; align-items: stretch; }
+.zone-c { flex: 1 1 auto; min-width: 0; }
+.zone-d { flex: 0 0 22.5%; max-width: 22.5%; min-width: 0; }
+
+/* แถว F | G */
+.row-fg { display: flex; gap: 12px; align-items: stretch; height: 78vh; }
+.zone-f {
+  flex: 0 0 30%; min-width: 0;
+  background: var(--bg1); border: 1px solid var(--border); border-radius: 10px;
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.zone-g {
+  flex: 1 1 auto; min-width: 0;
+  background: var(--bg0); border: 1px solid var(--border); border-radius: 10px;
+  display: flex; flex-direction: column; overflow: hidden;
+}
 
 /* ── MultiSelect ── */
 .ms-wrap { position: relative; }
-
 .ms-trigger {
   width: 100%;
   background: var(--bg2);
@@ -114,7 +143,7 @@ body {
 }
 .ms-trigger:hover { border-color: #4a5568; }
 .ms-trigger.open, .ms-trigger.has-value { border-color: var(--green); }
-.ms-trigger-label { color: var(--text2); font-size: 0.72rem; min-width: 0; flex-shrink: 0; }
+.ms-trigger-label { color: var(--yellow); font-size: 0.72rem; min-width: 0; flex-shrink: 0; }
 .ms-trigger-val { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); }
 .ms-trigger.has-value .ms-trigger-val { color: var(--green); font-weight: 500; }
 .ms-caret { margin-left: auto; flex-shrink: 0; color: var(--text2); font-size: 0.65rem; transition: transform 0.15s; }
@@ -123,8 +152,7 @@ body {
 .ms-panel {
   background: var(--bg2);
   border: 1px solid var(--green);
-  border-top: none;
-  border-radius: 0 0 6px 6px;
+  border-radius: 6px;
   overflow: hidden;
 }
 .ms-panel[hidden] { display: none; }
@@ -137,7 +165,7 @@ body {
   font-family: inherit; outline: none;
 }
 .ms-search:focus { border-color: var(--green); }
-.ms-list { max-height: 180px; overflow-y: auto; padding: 3px 0; }
+.ms-list { max-height: 220px; overflow-y: auto; padding: 3px 0; }
 .ms-item {
   display: flex; align-items: flex-start; gap: 7px;
   padding: 4px 8px; cursor: pointer;
@@ -165,17 +193,10 @@ body {
 }
 .ms-clear-btn:hover { color: var(--red); }
 .ms-empty { padding: 8px; font-size: 0.78rem; color: var(--text2); text-align: center; }
-
-/* Unavailable option: dim items with no results in current filter set */
 .ms-item.unavailable { opacity: 0.28; }
 .ms-item.unavailable:not(.checked) { pointer-events: none; }
 
-/* ── List panel ── */
-.list-panel {
-  width: 360px; flex-shrink: 0;
-  border-right: 1px solid var(--border);
-  display: flex; flex-direction: column; overflow: hidden;
-}
+/* ── List (โซน F) ── */
 .search-wrap { padding: 10px; border-bottom: 1px solid var(--border); background: var(--bg1); flex-shrink: 0; }
 .search-input {
   width: 100%; background: var(--bg2); border: 1px solid var(--border);
@@ -183,41 +204,25 @@ body {
   font-size: 0.88rem; font-family: inherit; outline: none;
 }
 .search-input:focus { border-color: var(--green); }
-
-/* Sort bar */
 .sort-bar {
-  padding: 5px 10px;
-  border-bottom: 1px solid var(--border);
-  background: var(--bg1);
-  display: flex; align-items: center; gap: 8px;
-  flex-shrink: 0;
+  padding: 5px 10px; border-bottom: 1px solid var(--border); background: var(--bg1);
+  display: flex; align-items: center; gap: 8px; flex-shrink: 0;
 }
-.sort-label { font-size: 0.68rem; color: var(--text2); }
+.sort-label { font-size: 0.68rem; color: var(--green); }
 .btn-sort {
-  margin-left: auto;
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  color: var(--text2);
-  font-size: 0.7rem;
-  padding: 3px 9px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-family: inherit;
-  transition: all 0.12s;
+  margin-left: auto; background: var(--bg2); border: 1px solid var(--border);
+  color: var(--text2); font-size: 0.7rem; padding: 3px 9px; border-radius: 4px;
+  cursor: pointer; font-family: inherit; transition: all 0.12s;
 }
 .btn-sort:hover { border-color: var(--green); color: var(--green); }
 .btn-sort.asc { border-color: var(--green); color: var(--green); }
-
 .results-bar { padding: 6px 12px; font-size: 0.72rem; color: var(--text2); border-bottom: 1px solid var(--border); background: var(--bg1); flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+#results-count { color: var(--yellow); font-weight: 600; }
 .export-btns { display: flex; gap: 6px; flex-shrink: 0; }
 .btn-export { background: var(--bg2); border: 1px solid var(--border); color: var(--text2); font-size: 0.68rem; padding: 3px 8px; border-radius: 4px; cursor: pointer; font-family: inherit; white-space: nowrap; transition: all 0.12s; }
 .btn-export:hover:not(:disabled) { border-color: var(--green); color: var(--green); }
 .btn-export:disabled { opacity: 0.4; cursor: default; }
 .btn-export.done { border-color: var(--green); color: var(--green); }
-.d-toolbar { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 14px; }
-.btn-doc { background: var(--bg1); border: 1px solid var(--border); color: var(--text); font-size: 0.78rem; padding: 5px 12px; border-radius: 6px; cursor: pointer; font-family: inherit; white-space: nowrap; transition: all 0.12s; }
-.btn-doc:hover { border-color: var(--green); color: var(--green); }
-.btn-doc.done { border-color: var(--green); color: var(--green); }
 .results-list { flex: 1; overflow-y: auto; }
 .empty-msg { padding: 32px 16px; text-align: center; color: var(--text2); font-size: 0.85rem; }
 
@@ -240,7 +245,7 @@ body {
 .badge.flag { border-color: #7c2020; color: var(--red); background: #160808; }
 .badge.tag { border-color: #1a5c2e; color: var(--green); background: #071510; }
 
-/* ── Detail panel ── */
+/* ── Detail (โซน G) ── */
 .detail-panel { flex: 1; overflow-y: auto; padding: 22px 26px; background: var(--bg0); }
 .detail-empty { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text2); gap: 10px; opacity: 0.45; }
 .detail-empty svg { width: 52px; height: 52px; }
@@ -248,144 +253,24 @@ body {
 .d-title { font-size: 1.2rem; font-weight: 700; line-height: 1.45; margin-bottom: 10px; }
 .d-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
 .d-badge { font-size: 0.78rem; padding: 3px 10px; border-radius: 4px; border: 1px solid var(--border); }
-.info-grid { display: grid; grid-template-columns: 1fr; gap: 10px; background: var(--bg1); border: 1px solid var(--border); border-radius: 8px; padding: 14px; margin-bottom: 18px; }
-.info-field label { font-size: 0.67rem; color: var(--text2); text-transform: uppercase; letter-spacing: 0.06em; display: block; margin-bottom: 3px; }
-.info-field span { font-size: 0.88rem; line-height: 1.4; word-break: break-all; }
+/* ข้อมูลแบบ "ชื่อหัว : ค่า" บรรทัดเดียว จัด 2–3 คอลัมน์อัตโนมัติ ลดความสูง */
+.info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 7px 24px; background: var(--bg1); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; margin-bottom: 18px; }
+.info-field { display: flex; gap: 6px; align-items: baseline; font-size: 0.86rem; line-height: 1.45; }
+.info-field label { flex: 0 0 auto; font-size: 0.72rem; color: var(--text2); white-space: nowrap; }
+.info-field label::after { content: ' :'; }
+.info-field span { flex: 1 1 auto; min-width: 0; word-break: break-word; }
+.info-field.wide { grid-column: 1 / -1; }
 .info-field a { color: var(--blue); }
 .section-label { font-size: 0.68rem; color: var(--text2); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; margin-top: 18px; }
 .d-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 14px; }
 .full-text { font-size: 0.9rem; line-height: 1.85; white-space: pre-wrap; background: var(--bg1); border: 1px solid var(--border); border-radius: 8px; padding: 16px; color: var(--text); }
+.d-toolbar { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 14px; }
+.btn-doc { background: var(--bg1); border: 1px solid var(--border); color: var(--text); font-size: 0.78rem; padding: 5px 12px; border-radius: 6px; cursor: pointer; font-family: inherit; white-space: nowrap; transition: all 0.12s; }
+.btn-doc:hover { border-color: var(--green); color: var(--green); }
+.btn-doc.done { border-color: var(--green); color: var(--green); }
 
-/* ── Scrollbar ── */
-::-webkit-scrollbar { width: 5px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--bg3); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #3a4060; }
-
-/* ── Responsive: Sidebar toggle button ── */
-.btn-sidebar-toggle {
-  display: none;
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  color: var(--text);
-  font-size: 0.82rem;
-  padding: 5px 10px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-family: inherit;
-  white-space: nowrap;
-  flex-shrink: 0;
-  transition: border-color 0.12s, color 0.12s;
-}
-.btn-sidebar-toggle:hover { border-color: var(--green); color: var(--green); }
-
-/* Backdrop behind sidebar drawer */
-.sidebar-overlay {
-  display: none;
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,0.55);
-  z-index: 99;
-}
-.sidebar-overlay.open { display: block; }
-
-/* Back button in detail panel (mobile only) */
-.mobile-back-bar {
-  display: none;
-  align-items: center;
-  padding: 8px 12px;
-  border-bottom: 1px solid var(--border);
-  background: var(--bg1);
-  flex-shrink: 0;
-}
-.btn-back {
-  background: none; border: 1px solid var(--border);
-  color: var(--text2); font-size: 0.82rem;
-  cursor: pointer; font-family: inherit;
-  padding: 4px 10px; border-radius: 5px;
-  transition: border-color 0.12s, color 0.12s;
-}
-.btn-back:hover { border-color: var(--green); color: var(--green); }
-
-/* ── Tablet (641px – 1024px): sidebar drawer + 2-column ── */
-@media (max-width: 1024px) {
-  .btn-sidebar-toggle { display: inline-flex; align-items: center; gap: 5px; }
-
-  .sidebar {
-    position: fixed;
-    top: 0; bottom: 0; left: 0;
-    z-index: 100;
-    width: 240px;
-    transform: translateX(-100%);
-    transition: transform 0.24s ease;
-  }
-  .sidebar.open { transform: translateX(0); }
-
-  .list-panel { width: 42%; min-width: 220px; }
-}
-
-/* ── Mobile (≤ 640px): single-panel slide ── */
-@media (max-width: 640px) {
-  .header-sub { display: none; }
-  .header-stats { display: none; }
-
-  .layout { position: relative; overflow: hidden; }
-
-  .list-panel {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    border-right: none;
-    background: var(--bg0);
-    z-index: 1;
-    transition: transform 0.26s ease;
-  }
-  .list-panel.slide-left {
-    transform: translateX(-100%);
-    pointer-events: none;
-  }
-
-  .detail-panel {
-    position: absolute;
-    inset: 0;
-    padding: 0;
-    overflow-y: auto;
-    transform: translateX(100%);
-    transition: transform 0.26s ease;
-    display: flex;
-    flex-direction: column;
-    z-index: 2;
-  }
-  .detail-panel.slide-in { transform: translateX(0); }
-
-  .mobile-back-bar { display: flex; }
-  .detail-content { padding: 14px 16px 24px; }
-}
-
-/* ── Dashboard ── */
-.btn-view { margin-left: 10px; background: var(--bg2); border: 1px solid var(--border); color: var(--text); font-size: 0.8rem; padding: 6px 12px; border-radius: 7px; cursor: pointer; font-family: inherit; white-space: nowrap; flex-shrink: 0; transition: all 0.12s; }
-.btn-view:hover { border-color: var(--green); color: var(--green); }
-.dash-view { flex: 1; overflow-y: auto; padding: 16px 20px 30px; background: var(--bg0); }
-.dash-filterbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; background: var(--bg1); border: 1px solid var(--border); border-radius: 8px; padding: 9px 11px; margin-bottom: 14px; }
-.dash-fl { font-size: 0.62rem; color: var(--text2); text-transform: uppercase; letter-spacing: 0.08em; }
-.dash-date { font-size: 0.72rem; color: var(--text2); display: inline-flex; align-items: center; gap: 5px; }
-.dash-date input { background: var(--bg2); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 4px 7px; font-family: inherit; font-size: 0.75rem; outline: none; color-scheme: dark; }
-.dash-date input:focus { border-color: var(--green); }
-.dash-msw { min-width: 150px; position: relative; }
-.dash-clear { margin-left: auto; background: none; border: 1px solid var(--border); color: var(--text2); font-size: 0.72rem; padding: 5px 9px; border-radius: 6px; cursor: pointer; font-family: inherit; transition: all 0.12s; }
-.dash-clear:hover { border-color: var(--red); color: var(--red); }
-#dash-view .ms-panel { position: absolute; z-index: 60; left: 0; right: 0; min-width: 200px; border-radius: 6px; }
-.dash-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 14px; }
-.dash-card { background: var(--bg1); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
-.dash-card .lbl { font-size: 0.7rem; color: var(--text2); }
-.dash-card .num { font-size: 1.5rem; font-weight: 700; margin-top: 3px; }
-/* กรอบ "จำนวนข่าวรายเดือน" (ซ้าย, กินพื้นที่ที่เหลือ) + "แยกตามประเภท" (ขวา, fix 25% ของความกว้างจอ)
-   ทั้งคู่ความกว้างคงที่ ไม่ขยับตามปริมาณข้อมูล */
-.dash-row { display: flex; gap: 12px; margin-bottom: 14px; align-items: stretch; }
-.dash-row .dash-panel:first-child { flex: 1 1 auto; min-width: 0; }
-.dash-row .dash-panel:last-child  { flex: 0 0 25vw; width: 25vw; max-width: 25vw; min-width: 0; }
-.dash-panel { background: var(--bg1); border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
-.dash-panel-title { font-size: 0.72rem; color: var(--text2); margin-bottom: 12px; }
-.mchart-area { position: relative; height: 150px; }
+/* ── Charts (โซน C: รายเดือน) ── */
+.mchart-area { position: relative; height: 190px; }
 .mchart-grid {
   position: absolute; inset: 0;
   background-image: linear-gradient(to top, var(--border) 1px, transparent 1px);
@@ -395,12 +280,14 @@ body {
   pointer-events: none;
 }
 .mchart { position: relative; z-index: 1; display: flex; align-items: stretch; gap: 4px; height: 100%; }
-/* เดือนเยอะ (>20) — ลดช่องไฟระหว่างแท่งลง ให้แท่งหดพอดีกรอบที่กว้างคงที่ */
 .mchart.dense { gap: 1px; }
-.mcol { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: flex-end; height: 100%; }
+.mcol { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: flex-end; height: 100%; cursor: pointer; }
 .mbar-area { width: 100%; height: 100%; display: flex; align-items: flex-end; }
-.mbar { position: relative; width: 100%; background: #2e6b45; border-radius: 3px 3px 0 0; min-height: 2px; }
+.mbar { position: relative; width: 100%; background: #2e6b45; border-radius: 3px 3px 0 0; min-height: 2px; transition: background 0.12s; }
+.mcol:hover .mbar { background: #3a8a58; }
 .mbar.max { background: var(--green); }
+.mbar.sel { background: var(--yellow); }
+.mcol:hover .mbar.sel { background: #fcd34d; }
 .mval {
   position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);
   margin-bottom: 3px; font-size: 0.62rem; color: var(--text2); white-space: nowrap;
@@ -408,20 +295,24 @@ body {
 .mchart.dense .mval { font-size: 0.5rem; }
 .mchart-x { display: flex; gap: 4px; margin-top: 6px; }
 .mchart-x.dense { gap: 1px; }
-.mlbl { flex: 1; min-width: 0; font-size: 0.62rem; color: #64748b; text-align: center; white-space: nowrap; }
+.mlbl { flex: 1; min-width: 0; font-size: 0.62rem; color: var(--text); text-align: center; white-space: nowrap; }
 .mchart-x.dense .mlbl { font-size: 0.5rem; }
 .mchart-x.rotate { margin-top: 4px; height: 30px; }
-.mchart-x.rotate .mlbl {
-  transform: rotate(-40deg); transform-origin: top right;
-  text-align: right; white-space: nowrap;
-}
-.hbar-row { margin-bottom: 9px; }
-.hbar-lbl { font-size: 0.72rem; color: #cbd5e1; margin-bottom: 3px; }
-.hbar-lbl span { color: var(--text2); }
-.hbar-track { height: 8px; background: var(--bg3); border-radius: 5px; overflow: hidden; }
+.mchart-x.rotate .mlbl { transform: rotate(-40deg); transform-origin: top right; text-align: right; white-space: nowrap; }
+
+/* ── Charts (โซน D: ประเภท) — ชื่อ+แท่ง อยู่บรรทัดเดียวกัน ── */
+.hbar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; cursor: pointer; padding: 3px 4px; border-radius: 5px; transition: background 0.12s; }
+.hbar-row:hover { background: var(--bg2); }
+.hbar-row.sel { background: #1a1608; box-shadow: inset 0 0 0 1px #7a5c12; }
+.hbar-lbl { flex: 0 0 38%; min-width: 0; font-size: 0.72rem; color: #cbd5e1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hbar-row.sel .hbar-lbl { color: var(--yellow); }
+.hbar-track { flex: 1 1 auto; height: 8px; background: var(--bg3); border-radius: 5px; overflow: hidden; }
 .hbar-fill { height: 100%; background: var(--green); border-radius: 5px; }
+.hbar-row.sel .hbar-fill { background: var(--yellow); }
+.hbar-num { flex: 0 0 auto; font-size: 0.7rem; color: var(--text2); min-width: 26px; text-align: right; }
+
+/* ── Tags (โซน E) ── */
 .dash-tags-wrap { display: flex; flex-wrap: wrap; gap: 7px; }
-/* ป้ายแท็ก — คลิกได้เหมือนตัวกรอง: ปกติ = เขียว, เลือกแล้ว = แดง (โทนเดียวกับ badge ต้องตรวจ) */
 .dash-tagpill {
   font-size: 0.78rem; color: var(--green); border: 1px solid #1a5c2e; background: #071510;
   border-radius: 5px; padding: 3px 10px; cursor: pointer; user-select: none; transition: all 0.12s;
@@ -429,19 +320,37 @@ body {
 .dash-tagpill:hover { filter: brightness(1.2); }
 .dash-tagpill.active { border-color: #7c2020; color: var(--red); background: #160808; }
 .dash-empty { color: var(--text2); font-size: 0.8rem; padding: 20px; text-align: center; }
-@media (max-width: 720px) {
-  .dash-cards { grid-template-columns: repeat(2, 1fr); }
-  .dash-row { flex-direction: column; }
-  .dash-row .dash-panel:last-child { width: auto; max-width: none; flex: 1 1 auto; }
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--bg3); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #3a4060; }
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  .zone-a { flex-wrap: wrap; }
+  .zone-a .ms-wrap { flex: 1 1 140px; }
+  .row-cd, .row-fg { flex-direction: column; }
+  .zone-d { flex-basis: auto; max-width: none; }
+  .row-fg { height: auto; }
+  .zone-f { height: 55vh; }
+  .zone-g { min-height: 60vh; }
+  .header-sub { display: none; }
+}
+@media (max-width: 560px) {
+  .header-stats { display: none; }
+  .zone-a .ms-wrap { flex-basis: 100%; }
 }
 
-/* ── Print: เฉพาะเนื้อหาข่าวที่เปิดอยู่ บนกระดาษขาว ── */
+/* ── Print: เฉพาะเนื้อหาข่าวที่เปิดอยู่ ── */
 @media print {
-  body { overflow: visible; height: auto; }
-  #overlay, .header, .sidebar, .sidebar-overlay, .list-panel, .mobile-back-bar, .d-toolbar, .btn-sidebar-toggle { display: none !important; }
-  .layout { display: block; overflow: visible; }
-  .detail-panel { position: static !important; overflow: visible; padding: 0; background: #fff !important; transform: none !important; }
-  .detail-content { padding: 0 !important; }
+  body { overflow: visible; }
+  #overlay, .topbar, .row-cd, .zone-e, .zone-f, .d-toolbar { display: none !important; }
+  .page { padding: 0; gap: 0; }
+  .row-fg { display: block; height: auto; }
+  .zone-g { border: none; }
+  .detail-panel { overflow: visible; padding: 0; background: #fff !important; }
   .detail-panel, .detail-content, .d-title, .d-ref, .section-label, .info-field label, .info-field span, .full-text, .d-badge, a { color: #000 !important; }
   .full-text, .info-grid { background: #fff !important; border-color: #999 !important; }
   .full-text { white-space: pre-wrap; }
@@ -457,95 +366,93 @@ body {
   <div id="load-bar-wrap"><div id="load-bar"></div></div>
 </div>
 
-<!-- Header -->
-<div class="header">
-  <button class="btn-sidebar-toggle" id="btn-sidebar-toggle">☰ กรอง</button>
-  <div>
-    <div class="header-title">📰 คลังข่าวแจก ทีมโฆษกกองทัพบก</div>
-    <div class="header-sub">ระบบจัดเก็บและค้นหาข่าวแจก ทบ.</div>
+<!-- Topbar: Header + ตัวกรอง (ตรึงบนสุด) -->
+<div class="topbar">
+  <div class="header">
+    <div>
+      <div class="header-title">📰 คลังข่าวแจก ทีมโฆษกกองทัพบก</div>
+      <div class="header-sub">ระบบจัดเก็บ ค้นหา และสรุปข่าวแจก ทบ.</div>
+    </div>
+    <div class="header-stats" id="hdr-stats"></div>
+    <button class="btn-header-reset" id="btn-reset">✕ ล้างตัวกรอง</button>
   </div>
-  <div class="header-stats" id="hdr-stats"></div>
-  <button class="btn-view" id="btn-view-toggle">📊 แดชบอร์ด</button>
-</div>
-
-<div class="layout">
-
-<div class="sidebar-overlay" id="sidebar-overlay"></div>
-
-  <!-- Sidebar -->
-  <div class="sidebar" id="sidebar">
-    <div class="sidebar-section-label">ตัวกรอง</div>
-
+  <!-- โซน A: ตัวกรอง (บรรทัดเดียว) -->
+  <div class="zone-a" id="zone-a">
+    <span class="zone-lbl">ตัวกรอง</span>
+    <!-- บรรทัด 1: ประเภท · ปี · เดือน · ตั้งแต่ · ถึง · สถานะตรวจสอบ -->
     <div id="ms-cat" class="ms-wrap"></div>
     <div id="ms-year" class="ms-wrap"></div>
     <div id="ms-month" class="ms-wrap"></div>
+    <label class="z-date">ตั้งแต่ <input type="date" id="dash-from"></label>
+    <label class="z-date">ถึง <input type="date" id="dash-to"></label>
     <div id="ms-status" class="ms-wrap"></div>
+    <div class="zone-break"></div>
+    <!-- บรรทัด 2: แท็ก · จังหวัด · สถานที่ · หน่วย · บุคคล -->
     <div id="ms-tag" class="ms-wrap"></div>
-    <div id="ms-unit" class="ms-wrap"></div>
     <div id="ms-province" class="ms-wrap"></div>
     <div id="ms-place" class="ms-wrap"></div>
+    <div id="ms-unit" class="ms-wrap"></div>
     <div id="ms-person" class="ms-wrap"></div>
+  </div>
+</div>
 
-    <button class="btn-reset-all" id="btn-reset">✕ ล้างตัวกรองทั้งหมด</button>
+<main class="page">
+
+  <!-- แถว C | D -->
+  <div class="row-cd">
+    <div class="zone-c panel">
+      <div class="panel-title">จำนวนข่าวรายเดือน <span style="opacity:.6">· คลิกแท่งเพื่อกรองเดือนนั้น</span></div>
+      <div id="dash-monthly"></div>
+    </div>
+    <div class="zone-d panel">
+      <div class="panel-title">ประเภทข่าว <span style="opacity:.6">· คลิกเพื่อกรอง</span></div>
+      <div id="dash-cat"></div>
+    </div>
   </div>
 
-  <!-- List panel -->
-  <div class="list-panel">
-    <div class="search-wrap">
-      <input class="search-input" id="search-input" type="text" placeholder="🔍 ค้นหาข่าว (ชื่อเรื่อง, เนื้อหา)…">
+  <!-- โซน E: แท็ก -->
+  <div class="zone-e panel">
+    <div class="panel-title">แท็กยอดนิยม <span style="opacity:.6">· คลิกเพื่อกรอง</span></div>
+    <div id="dash-tags"></div>
+  </div>
+
+  <!-- แถว F | G -->
+  <div class="row-fg">
+    <!-- โซน F: รายการข่าว -->
+    <div class="zone-f">
+      <div class="search-wrap">
+        <input class="search-input" id="search-input" type="text" placeholder="🔍 ค้นหาข่าว (ชื่อเรื่อง, เนื้อหา)…">
+      </div>
+      <div class="sort-bar">
+        <span class="sort-label">เรียงตามวันที่เผยแพร่</span>
+        <button class="btn-sort" id="btn-sort">ใหม่สุดก่อน ↓</button>
+      </div>
+      <div class="results-bar" id="results-bar">
+        <span id="results-count">—</span>
+        <div class="export-btns">
+          <button class="btn-export" id="btn-copy-list" title="คัดลอกรายการที่แสดงเป็นตาราง (วางใน Excel ได้)" disabled>⧉ คัดลอกตาราง</button>
+          <button class="btn-export" id="btn-xlsx-list" title="ดาวน์โหลดรายการที่แสดงเป็นไฟล์ Excel" disabled>⭳ Excel</button>
+        </div>
+      </div>
+      <div class="results-list" id="results-list"></div>
     </div>
-    <div class="sort-bar">
-      <span class="sort-label">เรียงตามวันที่เผยแพร่</span>
-      <button class="btn-sort" id="btn-sort">ใหม่สุดก่อน ↓</button>
-    </div>
-    <div class="results-bar" id="results-bar">
-      <span id="results-count">—</span>
-      <div class="export-btns">
-        <button class="btn-export" id="btn-copy-list" title="คัดลอกรายการที่แสดงเป็นตาราง (วางใน Excel ได้)" disabled>⧉ คัดลอกตาราง</button>
-        <button class="btn-export" id="btn-xlsx-list" title="ดาวน์โหลดรายการที่แสดงเป็นไฟล์ Excel" disabled>⭳ Excel</button>
+    <!-- โซน G: รายละเอียดข่าว -->
+    <div class="zone-g" id="zone-g">
+      <div class="detail-panel" id="detail-panel">
+        <div class="detail-empty">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+          </svg>
+          <div>เลือกข่าวจากรายการด้านซ้ายเพื่ออ่านรายละเอียด</div>
+        </div>
       </div>
     </div>
-    <div class="results-list" id="results-list"></div>
   </div>
 
-  <!-- Detail panel -->
-  <div class="detail-panel" id="detail-panel">
-    <div class="detail-empty">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
-        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-        <polyline points="14 2 14 8 20 8"/>
-        <line x1="16" y1="13" x2="8" y2="13"/>
-        <line x1="16" y1="17" x2="8" y2="17"/>
-      </svg>
-      <div>เลือกข่าวจากรายการด้านซ้ายเพื่ออ่านรายละเอียด</div>
-    </div>
-  </div>
-</div>
-
-<!-- Dashboard view -->
-<div class="dash-view" id="dash-view" hidden>
-  <div class="dash-filterbar">
-    <span class="dash-fl">ตัวกรอง</span>
-    <label class="dash-date">ตั้งแต่ <input type="date" id="dash-from"></label>
-    <label class="dash-date">ถึง <input type="date" id="dash-to"></label>
-    <div id="dash-ms-cat" class="ms-wrap dash-msw"></div>
-    <div id="dash-ms-year" class="ms-wrap dash-msw"></div>
-    <div id="dash-ms-month" class="ms-wrap dash-msw"></div>
-    <div id="dash-ms-status" class="ms-wrap dash-msw"></div>
-    <div id="dash-ms-tag" class="ms-wrap dash-msw"></div>
-    <div id="dash-ms-unit" class="ms-wrap dash-msw"></div>
-    <div id="dash-ms-province" class="ms-wrap dash-msw"></div>
-    <div id="dash-ms-place" class="ms-wrap dash-msw"></div>
-    <div id="dash-ms-person" class="ms-wrap dash-msw"></div>
-    <button class="dash-clear" id="dash-clear">✕ ล้าง</button>
-  </div>
-  <div class="dash-cards" id="dash-cards"></div>
-  <div class="dash-row">
-    <div class="dash-panel"><div class="dash-panel-title">จำนวนข่าวรายเดือน</div><div id="dash-monthly"></div></div>
-    <div class="dash-panel"><div class="dash-panel-title">แยกตามประเภท</div><div id="dash-cat"></div></div>
-  </div>
-  <div class="dash-panel"><div class="dash-panel-title">แท็กยอดนิยม</div><div id="dash-tags"></div></div>
-</div>
+</main>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/sql-wasm.js"></script>
 <script>
@@ -558,11 +465,10 @@ let DB = null;
 let activeRef = null;
 let debounce = null;
 let sortOrder = 'DESC'; // 'DESC' = ใหม่สุดก่อน, 'ASC' = เก่าสุดก่อน
-const msFilters = {};  // id -> MultiSelect instance
-let currentRows = [];    // ผลลัพธ์ที่กรอง/ค้นหาล่าสุด (สำหรับส่งออกรายการ)
-let detailExport = null; // ข้อมูลข่าวที่เปิดอยู่ (สำหรับคัดลอกทั้งฉบับ)
-const dashMs = {};       // MultiSelect ของแดชบอร์ด (ประเภท/แท็ก)
-let dashMode = false;    // อยู่ในมุมมองแดชบอร์ดหรือไม่
+const msFilters = {};    // id -> MultiSelect instance (ตัวกรองชุดเดียวคุมทั้งหน้า)
+const selectedMonths = new Set(); // 'YYYY-MM' ของแท่งเดือนที่เลือก (เลือกได้หลายแท่ง)
+let currentRows = [];    // ผลลัพธ์รายการล่าสุด (สำหรับส่งออก)
+let detailExport = null; // ข่าวที่เปิดอยู่ (สำหรับคัดลอกทั้งฉบับ)
 
 // ── Helpers ──────────────────────────────────────────
 
@@ -603,8 +509,8 @@ class MultiSelect {
     this.searchable = searchable;
     this.allOptions = options; // [{value, text}]
     this.selected = new Set();
-    this._availableSet = null; // Set<string> of available values; null = all available
-    this.onChange = onChange || loadList; // callback เมื่อค่าเปลี่ยน (ดีฟอลต์ = คลังข่าว)
+    this._availableSet = null; // Set<string> ของค่าที่ยังมีข่าว; null = ทั้งหมด
+    this.onChange = onChange || apply; // callback เมื่อค่าเปลี่ยน (ดีฟอลต์ = อัปเดตทั้งหน้า)
     this._build();
   }
 
@@ -632,8 +538,6 @@ class MultiSelect {
     this._renderList(this.allOptions);
 
     this._trigger.addEventListener('click', e => { e.stopPropagation(); this.toggle(); });
-    // กันคลิกภายในกล่อง (ช่องค้นหา, checkbox, ปุ่มล้าง) หลุดไปโดน document listener
-    // ที่ปิด dropdown ทุกครั้งที่มีคลิกนอกกล่อง — ไม่งั้นพอคลิกช่องค้นหาเพื่อพิมพ์ กล่องจะปิดทันที
     this._panel.addEventListener('click', e => e.stopPropagation());
 
     wrap.querySelector('.ms-clear-btn').addEventListener('click', () => {
@@ -674,11 +578,9 @@ class MultiSelect {
       });
     });
 
-    // Apply availability dimming after render
     this._applyAvailability();
   }
 
-  // Mark options not in availableSet as dimmed/disabled
   _applyAvailability() {
     if (!this._availableSet) return;
     this._listEl.querySelectorAll('.ms-item').forEach(item => {
@@ -689,7 +591,6 @@ class MultiSelect {
     });
   }
 
-  // Called by refreshFilterOptions() after each filter change
   updateAvailability(availableSet) {
     this._availableSet = availableSet;
     this._applyAvailability();
@@ -732,6 +633,15 @@ class MultiSelect {
     this._updateVal();
   }
 
+  // toggle ค่าเดียวจากภายนอก (คลิกกราฟ/แท็ก) แล้ว sync label
+  toggleValue(val) {
+    val = String(val);
+    if (this.selected.has(val)) this.selected.delete(val);
+    else this.selected.add(val);
+    this._renderList(this.allOptions);
+    this._updateVal();
+  }
+
   getSelected() { return [...this.selected]; }
 }
 
@@ -770,54 +680,45 @@ async function boot() {
   document.getElementById('overlay').style.display = 'none';
 
   initUI();
-  loadList();
+  apply();
 }
 
 // ── Init UI ───────────────────────────────────────────
 
 function initUI() {
-  // Stats
+  // Stats (ยอดรวมทั้งระบบ — ไม่ผูกตัวกรอง)
   const total   = q1('SELECT COUNT(*) n FROM press_releases').n;
   const cats_n  = q1('SELECT COUNT(*) n FROM categories').n;
   const tags_n  = q1("SELECT COUNT(*) n FROM tags WHERE status='approved'").n;
   document.getElementById('hdr-stats').innerHTML = `
-    <div><span class="stat-num">${total.toLocaleString()}</span><span class="stat-label">ข่าวทั้งหมด</span></div>
-    <div><span class="stat-num">${cats_n}</span><span class="stat-label">หมวดหมู่</span></div>
-    <div><span class="stat-num">${tags_n}</span><span class="stat-label">แท็ก</span></div>`;
+    <div><span class="stat-num" id="hdr-total">${total.toLocaleString()}</span><span class="stat-label" id="hdr-total-lbl">ข่าวทั้งหมด</span></div>
+    <div><span class="stat-num" id="hdr-cats">${cats_n}</span><span class="stat-label">หมวดหมู่</span></div>
+    <div><span class="stat-num" id="hdr-tags">${tags_n}</span><span class="stat-label">แท็ก</span></div>`;
 
-  // Build option arrays
+  // Option arrays
   const catOpts = q('SELECT id, name FROM categories ORDER BY name')
     .map(r => ({ value: r.id, text: r.name }));
-
   const yearOpts = q("SELECT DISTINCT strftime('%Y', publish_date) yr FROM press_releases WHERE publish_date IS NOT NULL ORDER BY yr DESC")
     .map(r => ({ value: r.yr, text: `พ.ศ. ${parseInt(r.yr)+543}` }));
-
-  // Month: only months that have at least one record
   const monthOpts = q("SELECT DISTINCT strftime('%m', publish_date) m FROM press_releases WHERE publish_date IS NOT NULL ORDER BY m")
     .map(r => ({ value: r.m, text: MONTHS[parseInt(r.m)] }));
-
   const statusOpts = [
     { value: 'ปกติ',    text: '✓ ปกติ' },
     { value: 'ต้องตรวจ', text: '⚑ ต้องตรวจ' },
   ];
-
   const tagOpts = q("SELECT name FROM tags WHERE status='approved' ORDER BY name")
     .map(r => ({ value: r.name, text: r.name }));
-
   const unitOpts = q('SELECT DISTINCT unit_name FROM press_release_units ORDER BY unit_name')
     .map(r => ({ value: r.unit_name, text: r.unit_name }));
-
   const provOpts = q('SELECT DISTINCT province_name FROM press_release_provinces ORDER BY province_name')
     .map(r => ({ value: r.province_name, text: r.province_name }));
-
   const placeOpts = q('SELECT DISTINCT place_name FROM press_release_places ORDER BY place_name')
     .map(r => ({ value: r.place_name, text: r.place_name }));
-
   const personOpts = q('SELECT DISTINCT person_name FROM press_release_persons ORDER BY person_name')
     .map(r => ({ value: r.person_name, text: r.person_name }));
 
-  // Create MultiSelect instances
-  msFilters.cat    = new MultiSelect('ms-cat',      { label: 'หมวดหมู่',          options: catOpts,    searchable: catOpts.length > 6 });
+  // ตัวกรองชุดเดียว (ทุกช่อง onChange = apply → อัปเดตทั้งกราฟ+รายการ+จำนวน)
+  msFilters.cat    = new MultiSelect('ms-cat',      { label: 'ประเภท',            options: catOpts,    searchable: catOpts.length > 6 });
   msFilters.year   = new MultiSelect('ms-year',     { label: 'ปี (พ.ศ.)',          options: yearOpts });
   msFilters.month  = new MultiSelect('ms-month',    { label: 'เดือน',             options: monthOpts });
   msFilters.status = new MultiSelect('ms-status',   { label: 'สถานะตรวจสอบ',      options: statusOpts });
@@ -830,115 +731,91 @@ function initUI() {
   // Search box
   document.getElementById('search-input').addEventListener('input', () => {
     clearTimeout(debounce);
-    debounce = setTimeout(loadList, 280);
+    debounce = setTimeout(apply, 280);
   });
 
   // Sort toggle
   document.getElementById('btn-sort').addEventListener('click', () => {
     sortOrder = sortOrder === 'DESC' ? 'ASC' : 'DESC';
     const btn = document.getElementById('btn-sort');
-    if (sortOrder === 'ASC') {
-      btn.textContent = 'เก่าสุดก่อน ↑';
-      btn.classList.add('asc');
-    } else {
-      btn.textContent = 'ใหม่สุดก่อน ↓';
-      btn.classList.remove('asc');
-    }
+    if (sortOrder === 'ASC') { btn.textContent = 'เก่าสุดก่อน ↑'; btn.classList.add('asc'); }
+    else { btn.textContent = 'ใหม่สุดก่อน ↓'; btn.classList.remove('asc'); }
     loadList();
   });
 
-  // Export list (คอลัมน์กลาง)
+  // Export list
   document.getElementById('btn-copy-list').addEventListener('click', copyListTable);
   document.getElementById('btn-xlsx-list').addEventListener('click', exportListXlsx);
 
-  // Dashboard: ตัวกรองครบชุดเหมือนหน้าคลังข่าว แต่เป็นอินสแตนซ์แยกอิสระ (dashMs)
-  // ไม่ผูกค่ากับ msFilters ของหน้าคลังข่าว — เลือกในแดชบอร์ดไม่กระทบตัวกรองฝั่งคลังข่าว และกลับกัน
-  dashMs.cat    = new MultiSelect('dash-ms-cat',      { label: 'ประเภท',            options: catOpts,    searchable: catOpts.length > 6,  onChange: renderDashboard });
-  dashMs.year   = new MultiSelect('dash-ms-year',     { label: 'ปี (พ.ศ.)',          options: yearOpts,   onChange: renderDashboard });
-  dashMs.month  = new MultiSelect('dash-ms-month',    { label: 'เดือน',             options: monthOpts,  onChange: renderDashboard });
-  dashMs.status = new MultiSelect('dash-ms-status',   { label: 'สถานะตรวจสอบ',      options: statusOpts, onChange: renderDashboard });
-  dashMs.tag    = new MultiSelect('dash-ms-tag',      { label: 'แท็ก',               options: tagOpts,    searchable: tagOpts.length > 8,  onChange: renderDashboard });
-  dashMs.unit   = new MultiSelect('dash-ms-unit',     { label: 'หน่วยที่เกี่ยวข้อง', options: unitOpts,   searchable: true,                onChange: renderDashboard });
-  dashMs.prov   = new MultiSelect('dash-ms-province', { label: 'จังหวัด',            options: provOpts,   searchable: provOpts.length > 8, onChange: renderDashboard });
-  dashMs.place  = new MultiSelect('dash-ms-place',    { label: 'สถานที่',            options: placeOpts,  searchable: true,                onChange: renderDashboard });
-  dashMs.person = new MultiSelect('dash-ms-person',   { label: 'บุคคล',              options: personOpts, searchable: true,                onChange: renderDashboard });
-  document.getElementById('dash-from').addEventListener('change', renderDashboard);
-  document.getElementById('dash-to').addEventListener('change', renderDashboard);
-  document.getElementById('dash-clear').addEventListener('click', () => {
-    Object.values(dashMs).forEach(ms => ms.clear());
-    document.getElementById('dash-from').value = '';
-    document.getElementById('dash-to').value = '';
-    renderDashboard();
-  });
-  document.getElementById('btn-view-toggle').addEventListener('click', toggleView);
+  // Date range (from/to) — ตัวกรอง always-on ทั้งหน้า
+  document.getElementById('dash-from').addEventListener('change', apply);
+  document.getElementById('dash-to').addEventListener('change', apply);
 
-  // Reset all
+  // ล้างตัวกรองทั้งหมด (โซน B)
   document.getElementById('btn-reset').addEventListener('click', resetAll);
 
-  // Sidebar toggle (tablet/mobile)
-  document.getElementById('btn-sidebar-toggle').addEventListener('click', e => {
-    e.stopPropagation();
-    openSidebar();
-  });
-  document.getElementById('sidebar-overlay').addEventListener('click', closeSidebar);
-
-  // Close dropdowns on outside click
+  // ปิด dropdown เมื่อคลิกนอกกล่อง
   document.addEventListener('click', () => {
     Object.values(msFilters).forEach(ms => ms.close());
-    Object.values(dashMs).forEach(ms => ms.close());
   });
 }
 
 function resetAll() {
   Object.values(msFilters).forEach(ms => ms.clear());
+  selectedMonths.clear();
   document.getElementById('search-input').value = '';
+  document.getElementById('dash-from').value = '';
+  document.getElementById('dash-to').value = '';
   sortOrder = 'DESC';
   const btn = document.getElementById('btn-sort');
   if (btn) { btn.textContent = 'ใหม่สุดก่อน ↓'; btn.classList.remove('asc'); }
-  loadList();
+  apply();
 }
 
-
-// ── Responsive: sidebar drawer + mobile panel switching ───────────────────
-
-function openSidebar() {
-  document.getElementById('sidebar').classList.add('open');
-  document.getElementById('sidebar-overlay').classList.add('open');
+// ── ตัวกรองช่วงวันที่ (always-on) ──────────────────────
+function globalExtra() {
+  const wheres = [], params = [];
+  const from = document.getElementById('dash-from').value;
+  const to   = document.getElementById('dash-to').value;
+  if (from) { wheres.push('pr.publish_date >= ?'); params.push(from); }
+  if (to)   { wheres.push('pr.publish_date <= ?'); params.push(to); }
+  return { wheres, params };
 }
 
-function closeSidebar() {
-  document.getElementById('sidebar').classList.remove('open');
-  document.getElementById('sidebar-overlay').classList.remove('open');
-}
-
-function showList() {
-  document.querySelector('.list-panel').classList.remove('slide-left');
-  document.getElementById('detail-panel').classList.remove('slide-in');
-}
-
-// On resize: clean up mobile/tablet classes when going back to wider viewport
-window.addEventListener('resize', () => {
-  if (window.innerWidth > 640) {
-    document.querySelector('.list-panel')?.classList.remove('slide-left');
-    document.getElementById('detail-panel')?.classList.remove('slide-in');
+// ตัวกรองเดือนจากแท่งกราฟที่เลือก (เลือกได้หลายแท่ง) — YYYY-MM
+function monthExtra() {
+  const wheres = [], params = [];
+  if (selectedMonths.size) {
+    const arr = [...selectedMonths];
+    wheres.push(`strftime('%Y-%m', pr.publish_date) IN (${arr.map(() => '?').join(',')})`);
+    params.push(...arr);
   }
-  if (window.innerWidth > 1024) closeSidebar();
-});
+  return { wheres, params };
+}
+
+function combineExtra(...list) {
+  const wheres = [], params = [];
+  for (const e of list) { wheres.push(...e.wheres); params.push(...e.params); }
+  return { wheres, params };
+}
+
+// ตัวกรองรวมทั้งหมด (ช่วงวันที่ + เดือนที่เลือก) — ใช้กับ รายการ/จำนวน/ประเภท/แท็ก
+function fullExtra() { return combineExtra(globalExtra(), monthExtra()); }
+
+// ── apply(): อัปเดตทุกโซนจากตัวกรองชุดเดียว ─────────────
+function apply() {
+  loadList();                                     // โซน F (รายการ)
+  renderDashboard();                              // header, กราฟ C/D/E
+  refreshFilterOptionsFor(msFilters, fullExtra()); // cascading availability
+}
 
 // ── Build IN clause helper ────────────────────────────
-
 function buildIn(vals) {
   if (!vals.length) return null;
   return { ph: vals.map(() => '?').join(','), params: vals };
 }
 
-// ── Build WHERE conditions from all active filters ────
-// filterSet: msFilters (คลังข่าว) หรือ dashMs (แดชบอร์ด) — ทั้งสองใช้ id เดียวกัน
-//            (cat/year/month/status/tag/unit/prov/place/person) จึงใช้ตรรกะร่วมกันได้
-// excludeFilter: filter id (string) to skip — used by refreshFilterOptions
-// extra: { wheres, params } เงื่อนไขเพิ่มเติมที่ต้องใส่เสมอ (เช่น ช่วงวันที่ของแดชบอร์ด)
-// Returns { wheres: string[], params: any[] }
-
+// ── Build WHERE conditions ────────────────────────────
 function buildConditions(filterSet, excludeFilter = null, extra = null) {
   const wheres = extra ? [...extra.wheres] : [];
   const params = extra ? [...extra.params] : [];
@@ -1005,10 +882,7 @@ function buildConditions(filterSet, excludeFilter = null, extra = null) {
   return { wheres, params };
 }
 
-// ── Refresh filter options (cascading / dynamic availability) ─────────────
-// ใช้ร่วมกันได้ทั้งหน้าคลังข่าว (msFilters) และแดชบอร์ด (dashMs) ผ่าน filterSet param
-
-// Many-to-many filters ต้องมี JOIN ของตัวเอง — ประกาศไว้ระดับโมดูลเพื่อใช้ร่วมกันได้
+// ── Refresh filter options (cascading availability) ───
 const TAG_JOIN   = `FROM tags t JOIN press_release_tags prt ON t.id=prt.tag_id JOIN press_releases pr ON prt.press_release_ref=pr.ref_code LEFT JOIN categories c ON pr.category_id=c.id`;
 const UNIT_JOIN  = `FROM press_release_units pru JOIN press_releases pr ON pru.press_release_ref=pr.ref_code LEFT JOIN categories c ON pr.category_id=c.id`;
 const PROV_JOIN  = `FROM press_release_provinces prp JOIN press_releases pr ON prp.press_release_ref=pr.ref_code LEFT JOIN categories c ON pr.category_id=c.id`;
@@ -1016,10 +890,8 @@ const PLACE_JOIN = `FROM press_release_places prpl JOIN press_releases pr ON prp
 const PERS_JOIN  = `FROM press_release_persons prpe JOIN press_releases pr ON prpe.press_release_ref=pr.ref_code LEFT JOIN categories c ON pr.category_id=c.id`;
 
 function refreshFilterOptionsFor(filterSet, extra = null) {
-  // Base FROM clause shared by simple filters
   const BASE = `FROM press_releases pr LEFT JOIN categories c ON pr.category_id = c.id`;
 
-  // Helper: get available values for a simple column expression
   function getAvailSimple(excludeFilter, valueExpr) {
     const { wheres, params } = buildConditions(filterSet, excludeFilter, extra);
     const where = wheres.length ? 'WHERE ' + wheres.join(' AND ') : '';
@@ -1032,7 +904,6 @@ function refreshFilterOptionsFor(filterSet, extra = null) {
   filterSet.month?.updateAvailability(getAvailSimple('month', "strftime('%m', pr.publish_date)"));
   filterSet.status?.updateAvailability(getAvailSimple('status', 'pr.review_status'));
 
-  // Many-to-many filters need their own JOIN
   function getAvailJoined(excludeFilter, joinSql, valCol) {
     const { wheres, params } = buildConditions(filterSet, excludeFilter, extra);
     const where = wheres.length ? 'WHERE ' + wheres.join(' AND ') : '';
@@ -1047,20 +918,15 @@ function refreshFilterOptionsFor(filterSet, extra = null) {
   filterSet.person?.updateAvailability(getAvailJoined('person', PERS_JOIN, 'prpe.person_name'));
 }
 
-function refreshFilterOptions() {
-  refreshFilterOptionsFor(msFilters);
-}
-
-// ── Load list ─────────────────────────────────────────
+// ── Load list (โซน F) ─────────────────────────────────
 
 function loadList() {
   const sq = document.getElementById('search-input').value.trim();
-  const { wheres, params } = buildConditions(msFilters);
+  const { wheres, params } = buildConditions(msFilters, null, fullExtra());
 
   let rows;
 
   if (sq) {
-    // FTS search (sort by relevance rank)
     const ftsQ = '"' + sq.replace(/"/g,'""').replace(/\s+/g, '" OR "') + '"';
     let sql = `
       SELECT pr.ref_code, pr.publish_date, pr.title, pr.review_status, pr.priority, c.name cat
@@ -1073,7 +939,6 @@ function loadList() {
     sql += ' ORDER BY rank LIMIT 150';
     rows = q(sql, p);
 
-    // Fallback: LIKE search (respects sortOrder)
     if (!rows.length) {
       const pat = '%' + sq + '%';
       let s2 = `
@@ -1097,7 +962,6 @@ function loadList() {
   }
 
   renderList(rows);
-  refreshFilterOptions(); // Update availability after every filter change
 }
 
 // ── Render list ───────────────────────────────────────
@@ -1136,19 +1000,13 @@ function renderList(rows) {
   });
 }
 
-// ── Show detail ───────────────────────────────────────
+// ── Show detail (โซน G) ───────────────────────────────
 
 function showDetail(refCode) {
   activeRef = refCode;
   document.querySelectorAll('.news-card').forEach(c =>
     c.classList.toggle('active', c.dataset.ref === refCode)
   );
-
-  // Mobile: slide to detail panel
-  if (window.innerWidth <= 640) {
-    document.querySelector('.list-panel').classList.add('slide-left');
-    document.getElementById('detail-panel').classList.add('slide-in');
-  }
 
   const pr = q1(`SELECT pr.*, c.name cat FROM press_releases pr LEFT JOIN categories c ON pr.category_id=c.id WHERE pr.ref_code=?`, [refCode]);
   if (!pr) return;
@@ -1167,17 +1025,16 @@ function showDetail(refCode) {
     ? `<span class="d-badge" style="border-color:#7c2020;color:var(--red);background:#160808">⚑ ${esc(pr.review_status)}</span>`
     : `<span class="d-badge" style="border-color:#1a5c2e;color:var(--green);background:#071510">✓ ปกติ</span>`;
 
-  // info-grid: วันที่เหตุการณ์ ถูกตัดออก — แสดงแค่วันที่เผยแพร่
   let infoFields = `
     <div class="info-field"><label>วันที่เผยแพร่</label><span>${fmtDate(pr.publish_date)}</span></div>`;
   if (pr.event_action)  infoFields += `<div class="info-field"><label>การดำเนินการ</label><span>${esc(pr.event_action)}</span></div>`;
   if (units.length)     infoFields += `<div class="info-field"><label>หน่วยที่เกี่ยวข้อง</label><span>${units.map(u=>esc(u.u)).join(', ')}</span></div>`;
   if (persons.length)   infoFields += `<div class="info-field"><label>บุคคลที่เกี่ยวข้อง</label><span>${persons.map(p=>esc(p.p)).join(', ')}</span></div>`;
   if (provinces.length) infoFields += `<div class="info-field"><label>จังหวัด</label><span>${provinces.map(pv=>esc(pv.pv)).join(', ')}</span></div>`;
-  if (places.length)    infoFields += `<div class="info-field"><label>สถานที่</label><span>${places.map(pl=>esc(pl.pl)).join(', ')}</span></div>`;
-  if (pr.file_name)     infoFields += `<div class="info-field"><label>ชื่อไฟล์ต้นฉบับ</label><span style="color:var(--text2);font-size:.8rem">${esc(String(pr.file_name).split(/[\\/]/).pop())}</span></div>`;
-  if (pr.fb_link)       infoFields += `<div class="info-field"><label>ลิงก์ Facebook</label><span><a href="${esc(pr.fb_link)}" target="_blank" rel="noopener">${esc(pr.fb_link)}</a></span></div>`;
-  if (pr.notes)         infoFields += `<div class="info-field"><label>หมายเหตุ</label><span style="color:var(--yellow)">${esc(pr.notes)}</span></div>`;
+  if (places.length)    infoFields += `<div class="info-field wide"><label>สถานที่</label><span>${places.map(pl=>esc(pl.pl)).join(', ')}</span></div>`;
+  if (pr.file_name)     infoFields += `<div class="info-field wide"><label>ชื่อไฟล์ต้นฉบับ</label><span style="color:var(--text2);font-size:.8rem">${esc(String(pr.file_name).split(/[\\/]/).pop())}</span></div>`;
+  if (pr.fb_link)       infoFields += `<div class="info-field wide"><label>ลิงก์ Facebook</label><span><a href="${esc(pr.fb_link)}" target="_blank" rel="noopener">${esc(pr.fb_link)}</a></span></div>`;
+  if (pr.notes)         infoFields += `<div class="info-field wide"><label>หมายเหตุ</label><span style="color:var(--yellow)">${esc(pr.notes)}</span></div>`;
 
   const catBadge  = pr.cat ? `<span class="d-badge" style="border-color:#2d3d80;color:#93c5fd;background:#0f1833">${esc(pr.cat)}</span>` : '';
   const prioBadge = pr.priority ? `<span class="d-badge" style="border-color:var(--border);color:var(--text2)">${esc(pr.priority)}</span>` : '';
@@ -1186,9 +1043,6 @@ function showDetail(refCode) {
   const fullHtml  = content?.full_text ? `<div class="section-label" style="margin-top:18px">เนื้อหาฉบับเต็ม</div><div class="full-text">${esc(content.full_text)}</div>` : '';
 
   document.getElementById('detail-panel').innerHTML = `
-    <div class="mobile-back-bar">
-      <button class="btn-back" id="btn-back">← รายการ</button>
-    </div>
     <div class="detail-content">
       <div class="d-toolbar">
         <button class="btn-doc" id="btn-copy-detail" title="คัดลอกหัวข้อ ข้อมูล และเนื้อหาทั้งหมด">⧉ คัดลอกทั้งฉบับ</button>
@@ -1201,13 +1055,15 @@ function showDetail(refCode) {
       ${summaryHtml}${tagsHtml}${fullHtml}
     </div>`;
 
-  const backBtn = document.getElementById('btn-back');
-  if (backBtn) backBtn.addEventListener('click', showList);
-
   const cpBtn = document.getElementById('btn-copy-detail');
   if (cpBtn) cpBtn.addEventListener('click', copyDetail);
   const prBtn = document.getElementById('btn-print-detail');
   if (prBtn) prBtn.addEventListener('click', () => window.print());
+
+  // จอแคบ: เลื่อนไปโซนรายละเอียดให้เห็น
+  if (window.innerWidth <= 900) {
+    document.getElementById('zone-g').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
 }
 
 // ── Export helpers ────────────────────────────────────
@@ -1315,70 +1171,70 @@ async function exportListXlsx() {
   }
 }
 
-// ── Dashboard ─────────────────────────────────────────
+// ── Dashboard (โซน B, C, D, E) ────────────────────────
 
-function toggleView() {
-  dashMode = !dashMode;
-  document.querySelector('.layout').style.display = dashMode ? 'none' : '';
-  document.getElementById('dash-view').hidden = !dashMode;
-  document.getElementById('btn-view-toggle').textContent = dashMode ? '📋 คลังข่าว' : '📊 แดชบอร์ด';
-  if (dashMode) renderDashboard();
+// คลิกแท่งเดือน (โซน C) → toggle เข้า/ออกจากชุดเดือนที่เลือก (เลือกได้หลายแท่ง, กราฟไม่ยุบ)
+function toggleMonthBar(ym) {
+  if (selectedMonths.has(ym)) selectedMonths.delete(ym);
+  else selectedMonths.add(ym);
+  apply();
 }
 
-// ช่วงวันที่ของแดชบอร์ด — เป็นเงื่อนไข "always-on" ไม่อยู่ในชุด FILTER_DEFS ของ buildConditions
-// (ไม่มีตัวกรองอื่นมา cascade ตัดวันที่ออก จึงใส่เป็น extra เสมอ)
-function dashExtra() {
-  const wheres = [], params = [];
-  const from = document.getElementById('dash-from').value;
-  const to   = document.getElementById('dash-to').value;
-  if (from) { wheres.push('pr.publish_date >= ?'); params.push(from); }
-  if (to)   { wheres.push('pr.publish_date <= ?'); params.push(to); }
-  return { wheres, params };
+// คลิกแท่งประเภท (โซน D) → toggle ตัวกรองประเภท
+function toggleCatBar(catId) {
+  if (!msFilters.cat) return;
+  msFilters.cat.toggleValue(catId);
+  apply();
 }
 
-// ป้ายแท็กด้านล่างแดชบอร์ด = ตัวกรองเดียวกับ dropdown "แท็ก" (dashMs.tag) ไม่ใช่สถานะแยก
-// คลิกป้าย → toggle เข้า/ออกจาก selected set แล้ว re-render ทั้งแดชบอร์ดให้ตรงกัน
-function toggleDashTagPill(tagName) {
-  if (!dashMs.tag) return;
-  const sel = dashMs.tag.selected;
-  if (sel.has(tagName)) sel.delete(tagName); else sel.add(tagName);
-  dashMs.tag._updateVal(); // sync label ของ dropdown ให้ตรงกับที่คลิกจากป้าย
-  renderDashboard();
+// คลิกแท็ก (โซน E) → toggle ตัวกรองแท็ก
+function toggleTagPill(tagName) {
+  if (!msFilters.tag) return;
+  msFilters.tag.toggleValue(tagName);
+  apply();
 }
 
 function renderDashboard() {
-  const { wheres, params } = buildConditions(dashMs, null, dashExtra());
-  const clause = wheres.length ? 'WHERE ' + wheres.join(' AND ') : '';
-  const AND = clause ? ' AND' : ' WHERE';
+  // ตัวกรองรวม (ช่วงวันที่ + เดือนที่เลือก + ตัวกรองอื่น) — ใช้กับ header/รายการ/ประเภท/แท็ก
+  const full = buildConditions(msFilters, null, fullExtra());
+  const clause = full.wheres.length ? 'WHERE ' + full.wheres.join(' AND ') : '';
+  const params = full.params;
 
   const total = q1(`SELECT COUNT(*) n FROM press_releases pr ${clause}`, params).n;
 
-  const monthly = q(`SELECT strftime('%Y-%m', pr.publish_date) ym, COUNT(*) n FROM press_releases pr ${clause}${AND} pr.publish_date IS NOT NULL GROUP BY ym ORDER BY ym`, params);
-  const avg = monthly.length ? (total / monthly.length) : 0;
+  // header 3 ตัวเลข ปรับตามตัวกรองทั้งหมด (ข่าว / หมวดหมู่ที่มี / แท็กที่ถูกใช้)
+  const filtered = Object.values(msFilters).some(ms => ms.getSelected().length)
+    || selectedMonths.size
+    || document.getElementById('dash-from').value
+    || document.getElementById('dash-to').value;
+  const catCount = q1(`SELECT COUNT(DISTINCT pr.category_id) n FROM press_releases pr ${clause}`, params).n;
+  const tagUsed  = q1(`SELECT COUNT(DISTINCT t.id) n FROM tags t JOIN press_release_tags prt ON t.id=prt.tag_id JOIN press_releases pr ON prt.press_release_ref=pr.ref_code ${clause}`, params).n;
+  const setStat = (id, val) => { const el = document.getElementById(id); if (el) { el.textContent = Number(val).toLocaleString(); el.style.color = filtered ? 'var(--yellow)' : 'var(--green)'; } };
+  setStat('hdr-total', total);
+  setStat('hdr-cats', catCount);
+  setStat('hdr-tags', tagUsed);
+  const hlEl = document.getElementById('hdr-total-lbl');
+  if (hlEl) hlEl.textContent = filtered ? 'ข่าว (กรองแล้ว)' : 'ข่าวทั้งหมด';
 
-  const clarify = q1(`SELECT COUNT(*) n FROM press_releases pr ${clause}${AND} pr.ref_code IN (SELECT prt.press_release_ref FROM press_release_tags prt JOIN tags t ON prt.tag_id=t.id WHERE t.name=?)`, [...params, 'ชี้แจง-ตอบโต้ข่าว']).n;
-
-  const tagCount = q1(`SELECT COUNT(DISTINCT t.id) n FROM tags t JOIN press_release_tags prt ON t.id=prt.tag_id JOIN press_releases pr ON prt.press_release_ref=pr.ref_code ${clause}`, params).n;
-
-  document.getElementById('dash-cards').innerHTML = `
-    <div class="dash-card"><div class="lbl">ข่าวทั้งหมด</div><div class="num">${total.toLocaleString()}</div></div>
-    <div class="dash-card"><div class="lbl">เฉลี่ยต่อเดือน</div><div class="num">${avg.toFixed(1)}</div></div>
-    <div class="dash-card"><div class="lbl" style="color:var(--blue)">ข่าวชี้แจง</div><div class="num" style="color:var(--blue)">${clarify.toLocaleString()}</div></div>
-    <div class="dash-card"><div class="lbl" style="color:var(--green)">แท็กที่ใช้</div><div class="num" style="color:var(--green)">${tagCount.toLocaleString()}</div></div>`;
-
+  // โซน C: รายเดือน — ไม่ใส่ตัวกรอง "เดือนที่เลือก" (กราฟจะไม่ยุบ) แต่ใส่ตัวกรองอื่น+ช่วงวันที่
+  const mCond = buildConditions(msFilters, null, globalExtra());
+  const mClause = mCond.wheres.length ? 'WHERE ' + mCond.wheres.join(' AND ') : '';
+  const mParams = mCond.params;
+  const mAND = mClause ? ' AND' : ' WHERE';
+  const monthly = q(`SELECT strftime('%Y-%m', pr.publish_date) ym, COUNT(*) n FROM press_releases pr ${mClause}${mAND} pr.publish_date IS NOT NULL GROUP BY ym ORDER BY ym`, mParams);
   const mEl = document.getElementById('dash-monthly');
   if (!monthly.length) {
     mEl.innerHTML = '<div class="dash-empty">ไม่มีข้อมูลในช่วงที่เลือก</div>';
   } else {
     const maxN = Math.max(...monthly.map(m => m.n));
-    const manyMonths = monthly.length > 8;   // เดือนเยอะ → หมุนป้ายเดือน 45°
-    const denseMonths = monthly.length > 20; // เดือนเยอะมาก → ลดช่องไฟ/ตัวอักษรลงอีก ให้แท่งพอดีกรอบคงที่
-    // เผื่อพื้นที่ด้านบน ~18% ไว้ใส่ตัวเลขจำนวนข่าวเหนือแท่งที่สูงสุด ไม่ให้ชนขอบ
+    const manyMonths = monthly.length > 8;
+    const denseMonths = monthly.length > 20;
     const cols = monthly.map(m => {
       const h = maxN ? Math.round((m.n / maxN) * 82) + 3 : 3;
       const [y, mo] = m.ym.split('-');
-      return `<div class="mcol">
-        <div class="mbar-area"><div class="mbar${m.n===maxN?' max':''}" style="height:${h}%" title="${MONTHS[parseInt(mo)]} ${parseInt(y)+543}: ${m.n} ข่าว"><span class="mval">${m.n}</span></div></div>
+      const sel = selectedMonths.has(m.ym) ? ' sel' : '';
+      return `<div class="mcol" data-ym="${m.ym}">
+        <div class="mbar-area"><div class="mbar${m.n===maxN?' max':''}${sel}" style="height:${h}%" title="${MONTHS[parseInt(mo)]} ${parseInt(y)+543}: ${m.n} ข่าว"><span class="mval">${m.n}</span></div></div>
       </div>`;
     }).join('');
     const labels = monthly.map(m => {
@@ -1391,34 +1247,44 @@ function renderDashboard() {
         <div class="mchart${denseMonths ? ' dense' : ''}">${cols}</div>
       </div>
       <div class="mchart-x${manyMonths ? ' rotate' : ''}${denseMonths ? ' dense' : ''}">${labels}</div>`;
+    mEl.querySelectorAll('.mcol').forEach(col => {
+      col.addEventListener('click', () => toggleMonthBar(col.dataset.ym));
+    });
   }
 
-  const cats = q(`SELECT c.name nm, COUNT(*) n FROM press_releases pr LEFT JOIN categories c ON pr.category_id=c.id ${clause} GROUP BY pr.category_id ORDER BY n DESC LIMIT 8`, params);
+  // โซน D: ประเภท — ไม่ใส่ตัวกรอง "ประเภท" ของตัวเอง (กราฟไม่ยุบ) แต่ใส่ตัวกรองอื่น+ช่วงวันที่+เดือนที่เลือก
+  const catCond = buildConditions(msFilters, 'cat', fullExtra());
+  const catClause = catCond.wheres.length ? 'WHERE ' + catCond.wheres.join(' AND ') : '';
+  const cats = q(`SELECT pr.category_id cid, c.name nm, COUNT(*) n FROM press_releases pr LEFT JOIN categories c ON pr.category_id=c.id ${catClause} GROUP BY pr.category_id ORDER BY n DESC`, catCond.params);
   const cEl = document.getElementById('dash-cat');
+  const selCats = msFilters.cat ? msFilters.cat.getSelected() : [];
   cEl.innerHTML = cats.length
-    ? cats.map(c => `
-        <div class="hbar-row">
-          <div class="hbar-lbl">${esc(c.nm||'(ไม่ระบุ)')} <span>${c.n}</span></div>
+    ? cats.map(c => {
+        const sel = c.cid != null && selCats.includes(String(c.cid)) ? ' sel' : '';
+        return `<div class="hbar-row${sel}"${c.cid != null ? ` data-cid="${c.cid}"` : ''} title="${esc(c.nm||'(ไม่ระบุ)')}: ${c.n}">
+          <div class="hbar-lbl">${esc(c.nm||'(ไม่ระบุ)')}</div>
           <div class="hbar-track"><div class="hbar-fill" style="width:${Math.round((c.n/cats[0].n)*100)}%"></div></div>
-        </div>`).join('')
+          <div class="hbar-num">${c.n}</div>
+        </div>`;
+      }).join('')
     : '<div class="dash-empty">ไม่มีข้อมูล</div>';
+  cEl.querySelectorAll('.hbar-row[data-cid]').forEach(row => {
+    row.addEventListener('click', () => toggleCatBar(row.dataset.cid));
+  });
 
-  const tags = q(`SELECT t.name nm, COUNT(*) n FROM tags t JOIN press_release_tags prt ON t.id=prt.tag_id JOIN press_releases pr ON prt.press_release_ref=pr.ref_code ${clause} GROUP BY t.id ORDER BY n DESC LIMIT 15`, params);
+  // โซน E: แท็ก
+  const tags = q(`SELECT t.name nm, COUNT(*) n FROM tags t JOIN press_release_tags prt ON t.id=prt.tag_id JOIN press_releases pr ON prt.press_release_ref=pr.ref_code ${clause} GROUP BY t.id ORDER BY n DESC LIMIT 30`, params);
   const tEl = document.getElementById('dash-tags');
-  const selectedTags = dashMs.tag ? dashMs.tag.getSelected() : [];
+  const selectedTags = msFilters.tag ? msFilters.tag.getSelected() : [];
   tEl.innerHTML = tags.length
     ? `<div class="dash-tags-wrap">${tags.map(t => {
         const active = selectedTags.includes(t.nm);
         return `<span class="dash-tagpill${active ? ' active' : ''}" data-tag="${esc(t.nm)}">${esc(t.nm)} ${t.n}</span>`;
       }).join('')}</div>`
     : '<div class="dash-empty">ไม่มีข้อมูล</div>';
-  // ป้ายแท็ก = ตัวกรองเดียวกับ dropdown "แท็ก" ด้านบน — คลิกเพื่อ toggle เข้า/ออก แล้ว re-render ทั้งแดชบอร์ด
   tEl.querySelectorAll('.dash-tagpill').forEach(pill => {
-    pill.addEventListener('click', () => toggleDashTagPill(pill.dataset.tag));
+    pill.addEventListener('click', () => toggleTagPill(pill.dataset.tag));
   });
-
-  // Cross-filter: ตัวเลือกในตัวกรองแดชบอร์ดอื่นๆ จะจางลงถ้าเลือกแล้วไม่มีข่าวเหลือ (เหมือนหน้าคลังข่าว)
-  refreshFilterOptionsFor(dashMs, dashExtra());
 }
 
 // ── Start ─────────────────────────────────────────────
@@ -1431,3 +1297,4 @@ boot().catch(err => {
 </script>
 </body>
 </html>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
