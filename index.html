@@ -476,7 +476,10 @@ body {
 <script>
 'use strict';
 
-const DB_URL = 'https://raw.githubusercontent.com/mewricha/rta-pressrelease/main/news.db';
+// โหลด DB จาก origin เดียวกัน (GitHub Pages / Fastly CDN) — เลี่ยง 429 ของ raw.githubusercontent.com
+// ถ้าเปิดหน้าเว็บจากที่อื่นที่ไม่มี news.db ข้างๆ จะ fallback ไป raw ให้อัตโนมัติ
+const DB_URL = 'news.db';
+const DB_URL_FALLBACK = 'https://raw.githubusercontent.com/mewricha/rta-pressrelease/main/news.db';
 const MONTHS = ['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
 
 let DB = null;
@@ -664,6 +667,32 @@ class MultiSelect {
   getSelected() { return [...this.selected]; }
 }
 
+// ── Download DB (retry + backoff + fallback) ─────────
+async function fetchDb() {
+  const urls = [DB_URL, DB_URL_FALLBACK];
+  let lastErr;
+  for (const url of urls) {
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        const res = await fetch(url, { cache: 'default' });
+        if (res.ok) return res;
+        lastErr = new Error(`HTTP ${res.status}`);
+        if (res.status === 429 || res.status >= 500) {
+          const wait = 800 * Math.pow(2, attempt);
+          setLoad(`เซิร์ฟเวอร์ไม่ว่าง (HTTP ${res.status}) — ลองใหม่ใน ${Math.round(wait/1000)} วิ…`, 15);
+          await new Promise(r => setTimeout(r, wait));
+          continue;
+        }
+        break;
+      } catch (e) {
+        lastErr = e;
+        await new Promise(r => setTimeout(r, 600));
+      }
+    }
+  }
+  throw lastErr || new Error('โหลดฐานข้อมูลไม่สำเร็จ');
+}
+
 // ── Boot ─────────────────────────────────────────────
 
 async function boot() {
@@ -672,11 +701,9 @@ async function boot() {
     locateFile: f => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/${f}`
   });
 
-  setLoad('กำลังดาวน์โหลดฐานข้อมูล (≈1.6 MB)…', 20);
-  const res = await fetch(DB_URL);
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-  const total = parseInt(res.headers.get('content-length') || '1617920');
+  setLoad('กำลังดาวน์โหลดฐานข้อมูล…', 20);
+  const res = await fetchDb();
+  const total = parseInt(res.headers.get('content-length') || '29000000');
   const reader = res.body.getReader();
   const chunks = [];
   let received = 0;
