@@ -198,12 +198,26 @@ body {
 
 /* ── List (โซน F) ── */
 .search-wrap { padding: 10px; border-bottom: 1px solid var(--border); background: var(--bg1); flex-shrink: 0; }
+.search-row { display: flex; gap: 6px; align-items: stretch; }
 .search-input {
-  width: 100%; background: var(--bg2); border: 1px solid var(--border);
+  flex: 1; min-width: 0; background: var(--bg2); border: 1px solid var(--border);
   color: var(--text); padding: 7px 11px; border-radius: 7px;
   font-size: 0.88rem; font-family: inherit; outline: none;
 }
 .search-input:focus { border-color: var(--green); }
+.btn-search {
+  flex-shrink: 0; background: var(--green); border: 1px solid var(--green);
+  color: #fff; padding: 7px 14px; border-radius: 7px; cursor: pointer;
+  font-size: 0.85rem; font-family: inherit; font-weight: 600; white-space: nowrap;
+}
+.btn-search:hover { filter: brightness(1.12); }
+.btn-search:active { filter: brightness(0.95); }
+.btn-search-clear {
+  flex-shrink: 0; background: var(--bg2); border: 1px solid var(--border);
+  color: var(--text2); padding: 7px 11px; border-radius: 7px; cursor: pointer;
+  font-size: 0.85rem; font-family: inherit;
+}
+.btn-search-clear:hover { border-color: var(--green); color: var(--text); }
 .sort-bar {
   padding: 5px 10px; border-bottom: 1px solid var(--border); background: var(--bg1);
   display: flex; align-items: center; gap: 8px; flex-shrink: 0;
@@ -421,7 +435,11 @@ body {
     <!-- โซน F: รายการข่าว -->
     <div class="zone-f">
       <div class="search-wrap">
-        <input class="search-input" id="search-input" type="text" placeholder="🔍 ค้นหาข่าว (ชื่อเรื่อง, เนื้อหา)…">
+        <div class="search-row">
+          <input class="search-input" id="search-input" type="text" placeholder="ค้นหาข่าว (ชื่อเรื่อง, เนื้อหา)…">
+          <button class="btn-search" id="btn-search" title="ค้นหา (Enter)">🔍 ค้นหา</button>
+          <button class="btn-search-clear" id="btn-search-clear" title="ล้างคำค้น" hidden>✕</button>
+        </div>
       </div>
       <div class="sort-bar">
         <span class="sort-label">เรียงตามวันที่เผยแพร่</span>
@@ -465,6 +483,7 @@ let DB = null;
 let activeRef = null;
 let debounce = null;
 let sortOrder = 'DESC'; // 'DESC' = ใหม่สุดก่อน, 'ASC' = เก่าสุดก่อน
+let appliedSearch = '';  // คำค้นที่ "กดค้นหา" แล้ว (คุมทั้งหน้า) — ต่างจากค่าที่พิมพ์ในช่อง
 const msFilters = {};    // id -> MultiSelect instance (ตัวกรองชุดเดียวคุมทั้งหน้า)
 const selectedMonths = new Set(); // 'YYYY-MM' ของแท่งเดือนที่เลือก (เลือกได้หลายแท่ง)
 let currentRows = [];    // ผลลัพธ์รายการล่าสุด (สำหรับส่งออก)
@@ -728,10 +747,22 @@ function initUI() {
   msFilters.place  = new MultiSelect('ms-place',    { label: 'สถานที่',            options: placeOpts,  searchable: true });
   msFilters.person = new MultiSelect('ms-person',   { label: 'บุคคล',              options: personOpts, searchable: true });
 
-  // Search box
-  document.getElementById('search-input').addEventListener('input', () => {
-    clearTimeout(debounce);
-    debounce = setTimeout(apply, 280);
+  // Search box — ค้นหาเมื่อ "กดปุ่ม" หรือ Enter เท่านั้น (แล้วอัปเดตทั้งหน้า)
+  const searchInput = document.getElementById('search-input');
+  const clearBtn    = document.getElementById('btn-search-clear');
+  function runSearch() {
+    appliedSearch = searchInput.value.trim();
+    clearBtn.hidden = !appliedSearch;
+    apply();
+  }
+  document.getElementById('btn-search').addEventListener('click', runSearch);
+  searchInput.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); runSearch(); } });
+  clearBtn.addEventListener('click', () => {
+    searchInput.value = '';
+    appliedSearch = '';
+    clearBtn.hidden = true;
+    apply();
+    searchInput.focus();
   });
 
   // Sort toggle
@@ -764,6 +795,8 @@ function resetAll() {
   Object.values(msFilters).forEach(ms => ms.clear());
   selectedMonths.clear();
   document.getElementById('search-input').value = '';
+  appliedSearch = '';
+  { const cb = document.getElementById('btn-search-clear'); if (cb) cb.hidden = true; }
   document.getElementById('dash-from').value = '';
   document.getElementById('dash-to').value = '';
   sortOrder = 'DESC';
@@ -799,8 +832,21 @@ function combineExtra(...list) {
   return { wheres, params };
 }
 
-// ตัวกรองรวมทั้งหมด (ช่วงวันที่ + เดือนที่เลือก) — ใช้กับ รายการ/จำนวน/ประเภท/แท็ก
-function fullExtra() { return combineExtra(globalExtra(), monthExtra()); }
+// คำค้นหา (LIKE substring ครอบคลุม หัวข้อ+สรุป+เนื้อเต็ม) — คุมทั้งหน้าเมื่อกดค้นหา
+// หลายคำ = AND · ใช้ LIKE เพราะ sql.js (cdnjs) ไม่ได้คอมไพล์ FTS5 มาด้วย
+function searchExtra() {
+  const wheres = [], params = [];
+  const words = appliedSearch.split(/\s+/).filter(Boolean);
+  for (const w of words) {
+    const pat = '%' + w + '%';
+    wheres.push('(pr.title LIKE ? OR pr.summary LIKE ? OR pr.ref_code IN (SELECT ref_code FROM press_release_content WHERE full_text LIKE ?))');
+    params.push(pat, pat, pat);
+  }
+  return { wheres, params };
+}
+
+// ตัวกรองรวมทั้งหมด (ช่วงวันที่ + เดือนที่เลือก + คำค้นหา) — ใช้กับ รายการ/จำนวน/ประเภท/แท็ก/ตัวกรอง
+function fullExtra() { return combineExtra(globalExtra(), monthExtra(), searchExtra()); }
 
 // ── apply(): อัปเดตทุกโซนจากตัวกรองชุดเดียว ─────────────
 function apply() {
@@ -921,45 +967,15 @@ function refreshFilterOptionsFor(filterSet, extra = null) {
 // ── Load list (โซน F) ─────────────────────────────────
 
 function loadList() {
-  const sq = document.getElementById('search-input').value.trim();
+  // คำค้นหาถูกผนวกอยู่ใน fullExtra() แล้ว (คุมทั้งหน้า) — แสดงผลทั้งหมด ไม่จำกัดจำนวน
   const { wheres, params } = buildConditions(msFilters, null, fullExtra());
-
-  let rows;
-
-  if (sq) {
-    const ftsQ = '"' + sq.replace(/"/g,'""').replace(/\s+/g, '" OR "') + '"';
-    let sql = `
-      SELECT pr.ref_code, pr.publish_date, pr.title, pr.review_status, pr.priority, c.name cat
-      FROM press_releases_fts fts
-      JOIN press_releases pr ON fts.ref_code = pr.ref_code
-      LEFT JOIN categories c ON pr.category_id = c.id
-      WHERE press_releases_fts MATCH ?`;
-    const p = [ftsQ, ...params];
-    if (wheres.length) sql += ' AND ' + wheres.join(' AND ');
-    sql += ' ORDER BY rank LIMIT 150';
-    rows = q(sql, p);
-
-    if (!rows.length) {
-      const pat = '%' + sq + '%';
-      let s2 = `
-        SELECT pr.ref_code, pr.publish_date, pr.title, pr.review_status, pr.priority, c.name cat
-        FROM press_releases pr
-        LEFT JOIN categories c ON pr.category_id = c.id
-        WHERE (pr.title LIKE ? OR pr.summary LIKE ?)`;
-      const p2 = [pat, pat, ...params];
-      if (wheres.length) s2 += ' AND ' + wheres.join(' AND ');
-      s2 += ` ORDER BY pr.publish_date ${sortOrder} LIMIT 150`;
-      rows = q(s2, p2);
-    }
-  } else {
-    const where = wheres.length ? 'WHERE ' + wheres.join(' AND ') : '';
-    rows = q(`
-      SELECT pr.ref_code, pr.publish_date, pr.title, pr.review_status, pr.priority, c.name cat
-      FROM press_releases pr
-      LEFT JOIN categories c ON pr.category_id = c.id
-      ${where}
-      ORDER BY pr.publish_date ${sortOrder} LIMIT 200`, params);
-  }
+  const where = wheres.length ? 'WHERE ' + wheres.join(' AND ') : '';
+  const rows = q(`
+    SELECT pr.ref_code, pr.publish_date, pr.title, pr.review_status, pr.priority, c.name cat
+    FROM press_releases pr
+    LEFT JOIN categories c ON pr.category_id = c.id
+    ${where}
+    ORDER BY pr.publish_date ${sortOrder}`, params);
 
   renderList(rows);
 }
@@ -1205,6 +1221,7 @@ function renderDashboard() {
   // header 3 ตัวเลข ปรับตามตัวกรองทั้งหมด (ข่าว / หมวดหมู่ที่มี / แท็กที่ถูกใช้)
   const filtered = Object.values(msFilters).some(ms => ms.getSelected().length)
     || selectedMonths.size
+    || appliedSearch
     || document.getElementById('dash-from').value
     || document.getElementById('dash-to').value;
   const catCount = q1(`SELECT COUNT(DISTINCT pr.category_id) n FROM press_releases pr ${clause}`, params).n;
@@ -1217,7 +1234,7 @@ function renderDashboard() {
   if (hlEl) hlEl.textContent = filtered ? 'ข่าว (กรองแล้ว)' : 'ข่าวทั้งหมด';
 
   // โซน C: รายเดือน — ไม่ใส่ตัวกรอง "เดือนที่เลือก" (กราฟจะไม่ยุบ) แต่ใส่ตัวกรองอื่น+ช่วงวันที่
-  const mCond = buildConditions(msFilters, null, globalExtra());
+  const mCond = buildConditions(msFilters, null, combineExtra(globalExtra(), searchExtra()));
   const mClause = mCond.wheres.length ? 'WHERE ' + mCond.wheres.join(' AND ') : '';
   const mParams = mCond.params;
   const mAND = mClause ? ' AND' : ' WHERE';
@@ -1297,4 +1314,3 @@ boot().catch(err => {
 </script>
 </body>
 </html>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
