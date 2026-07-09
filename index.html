@@ -476,10 +476,15 @@ body {
 <script>
 'use strict';
 
-// โหลด DB จาก origin เดียวกัน (GitHub Pages / Fastly CDN) — เลี่ยง 429 ของ raw.githubusercontent.com
-// ถ้าเปิดหน้าเว็บจากที่อื่นที่ไม่มี news.db ข้างๆ จะ fallback ไป raw ให้อัตโนมัติ
-const DB_URL = 'news.db';
-const DB_URL_FALLBACK = 'https://raw.githubusercontent.com/mewricha/rta-pressrelease/main/news.db';
+// โหลด DB จากหลายแหล่งตามลำดับ (กัน 429):
+//  1) same-origin GitHub Pages (Fastly CDN) — เร็วสุด ไม่โดน rate limit
+//  2) jsDelivr CDN — สำรอง เสถียร ไม่ 429
+//  3) raw.githubusercontent — สำรองสุดท้าย (อาจ 429)
+const DB_URLS = [
+  'https://mewricha.github.io/rta-pressrelease/news.db',
+  'https://cdn.jsdelivr.net/gh/mewricha/rta-pressrelease@main/news.db',
+  'https://raw.githubusercontent.com/mewricha/rta-pressrelease/main/news.db'
+];
 const MONTHS = ['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
 
 let DB = null;
@@ -669,7 +674,7 @@ class MultiSelect {
 
 // ── Download DB (retry + backoff + fallback) ─────────
 async function fetchDb() {
-  const urls = [DB_URL, DB_URL_FALLBACK];
+  const urls = DB_URLS;
   let lastErr;
   for (const url of urls) {
     for (let attempt = 0; attempt < 3; attempt++) {
