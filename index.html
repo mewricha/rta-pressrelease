@@ -682,13 +682,14 @@ async function fetchDb() {
         const res = await fetch(url, { cache: 'default' });
         if (res.ok) return res;
         lastErr = new Error(`HTTP ${res.status}`);
+        // 429/5xx = ชั่วคราว → รอแล้วลองใหม่ (backoff)
         if (res.status === 429 || res.status >= 500) {
-          const wait = 800 * Math.pow(2, attempt);
+          const wait = 800 * Math.pow(2, attempt); // 0.8s, 1.6s, 3.2s
           setLoad(`เซิร์ฟเวอร์ไม่ว่าง (HTTP ${res.status}) — ลองใหม่ใน ${Math.round(wait/1000)} วิ…`, 15);
           await new Promise(r => setTimeout(r, wait));
           continue;
         }
-        break;
+        break; // error อื่น (เช่น 404) → ข้ามไป URL ถัดไป
       } catch (e) {
         lastErr = e;
         await new Promise(r => setTimeout(r, 600));
