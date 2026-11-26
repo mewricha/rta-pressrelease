@@ -1083,6 +1083,7 @@ function showDetail(refCode) {
   if (places.length)    infoFields += `<div class="info-field wide"><label>สถานที่</label><span>${places.map(pl=>esc(pl.pl)).join(', ')}</span></div>`;
   if (pr.file_name)     infoFields += `<div class="info-field wide"><label>ชื่อไฟล์ต้นฉบับ</label><span style="color:var(--text2);font-size:.8rem">${esc(String(pr.file_name).split(/[\\/]/).pop())}</span></div>`;
   if (pr.fb_link)       infoFields += `<div class="info-field wide"><label>ลิงก์ Facebook</label><span><a href="${esc(pr.fb_link)}" target="_blank" rel="noopener">${esc(pr.fb_link)}</a></span></div>`;
+  if (pr.fb_link_en)    infoFields += `<div class="info-field wide"><label>ลิงก์ Facebook (English)</label><span><a href="${esc(pr.fb_link_en)}" target="_blank" rel="noopener">${esc(pr.fb_link_en)}</a>${pr.fb_link_en === pr.fb_link ? ' <span style="color:var(--text2);font-size:.78rem">(โพสต์เดียวกับฉบับไทย)</span>' : ''}</span></div>`;
   if (pr.notes)         infoFields += `<div class="info-field wide"><label>หมายเหตุ</label><span style="color:var(--yellow)">${esc(pr.notes)}</span></div>`;
 
   const catBadge  = pr.cat ? `<span class="d-badge" style="border-color:#2d3d80;color:#93c5fd;background:#0f1833">${esc(pr.cat)}</span>` : '';
@@ -1155,6 +1156,7 @@ function buildDetailText() {
   if (d.provinces.length) L.push('จังหวัด: ' + d.provinces.map(pv => pv.pv).join(', '));
   if (d.tags.length)      L.push('แท็ก: ' + d.tags.map(t => t.n).join(', '));
   if (pr.fb_link)  L.push('ลิงก์ Facebook: ' + pr.fb_link);
+  if (pr.fb_link_en) L.push('ลิงก์ Facebook (English): ' + pr.fb_link_en);
   if (pr.notes)    L.push('หมายเหตุ: ' + pr.notes);
   if (pr.summary)  { L.push(''); L.push('สรุปย่อ'); L.push(pr.summary); }
   if (d.content && d.content.full_text) { L.push(''); L.push('เนื้อหาฉบับเต็ม'); L.push(d.content.full_text); }
